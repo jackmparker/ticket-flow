@@ -2,13 +2,14 @@
 
 Keep Jira tickets in step with their GitHub pull requests.
 
-A [Claude Code](https://claude.com/claude-code) plugin with three skills:
+A [Claude Code](https://claude.com/claude-code) plugin with four skills:
 
 | Skill | What it does | Say something like |
 |---|---|---|
 | `jira-sync` | Compares each ticket with its PR and moves the ticket forward. An approved PR moves the ticket to Ready for Staging. A merged PR moves it to Accepted. It never moves a ticket backward, and it does not move tickets in the columns that QA owns. | "Move any approved tickets into ready for staging", "See if any of the zoneless tickets need to be moved" |
 | `stack-cleanup` | After you merge the top PR of a stack, it checks that the merged PR holds every lower PR. Then it closes the lower PRs with a comment, deletes their branches, and moves every ticket to Accepted. | "I just merged the top ticket in the stack for OP Agent" |
 | `catch-up` | Merges master into a branch in a git worktree and pushes. It never rebases or force-pushes. It stops on conflicts. | "Catch 40350 up with master" |
+| `address-comments` | Finds review threads on your open PRs where a reviewer has the last word. It fixes clear code requests, runs lint and specs, pushes, merges the fix into each PR stacked on top, and replies "Fixed in <sha>." For questions and suggestions it shows you a draft reply first. | "Address the review comments", "Cam left comments on 9208, fix them" |
 
 ## Requirements
 

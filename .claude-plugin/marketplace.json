@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "ticket-flow",
-      "description": "Three skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, and catch-up merges master into a branch and pushes.",
+      "description": "Four skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, and address-comments fixes review comments and merges the fix up the stack.",
       "source": "./",
       "category": "productivity"
     }

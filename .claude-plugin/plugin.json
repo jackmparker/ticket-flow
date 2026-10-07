@@ -1,7 +1,7 @@
 {
   "name": "ticket-flow",
-  "version": "1.0.0",
-  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, and catch branches up with master. Uses gh and the aikit Jira CLI.",
+  "version": "1.1.0",
+  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, catch branches up with master, and address review comments up the stack. Uses gh and the aikit Jira CLI.",
   "author": {
     "name": "Jack Parker",
     "url": "https://github.com/jackmparker"
@@ -9,5 +9,11 @@
   "homepage": "https://github.com/jackmparker/ticket-flow",
   "repository": "https://github.com/jackmparker/ticket-flow",
   "license": "MIT",
-  "keywords": ["jira", "github", "pull-requests", "stacked-prs", "gh-cli"]
+  "keywords": [
+    "jira",
+    "github",
+    "pull-requests",
+    "stacked-prs",
+    "gh-cli"
+  ]
 }
