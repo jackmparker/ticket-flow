@@ -68,9 +68,16 @@ step 4 skips QA columns only if the user agrees.
 Run the wait in the background. You are notified when it ends.
 
 ```bash
-aikit circleci wait <workflow-uuid> --interval 60 --timeout 3600 2>&1 | tail -1 \
-  | jq -c '{status: .workflow.status, notDone: [.jobs[] | select(.status != "success") | {name, status}]}'
+aikit circleci wait <workflow-uuid> --interval 60 --timeout 3600 | tail -1 \
+  | jq -c '{reason: .emission_reason, status: .workflow_status, notDone: [.jobs | to_entries[] | select(.value != "success") | "\(.key): \(.value)"]}'
 ```
+
+`wait` prints one NDJSON line per poll. Each line has `workflow_status`, `emission_reason` and
+`jobs`, which maps each job name to its status. It is not the same shape as
+`aikit circleci status`, which nests the status under `.workflow` and lists jobs as an array.
+
+If the background command fails (for example, a jq error), do not treat it as a failed deploy.
+Check `aikit circleci status <uuid> | jq -r '.workflow.status'` and act on that.
 
 Tell the user the pipeline number, the job that runs now, and what you will do when it ends.
 
@@ -79,7 +86,7 @@ Tell the user the pipeline number, the job that runs now, and what you will do w
 | `success` | Go to step 4 |
 | `failed`, `error`, `canceled` | Report the jobs that did not succeed and their URLs. Do not move the ticket. Do not send the message |
 | `on_hold` | A job waits for approval. Tell the user. Wait again after they approve |
-| Timeout | Check `aikit circleci status <uuid>`. If it still runs, wait again |
+| `reason` is not `terminal` (timeout) | Check `aikit circleci status <uuid>`. If it still runs, wait again |
 
 ## 4. Move the ticket
 
