@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
   "name": "ticket-flow",
-  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, and catch branches up with master.",
+  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, catch branches up with master, and hand prod deploys off to QA.",
   "owner": {
     "name": "Jack Parker",
     "url": "https://github.com/jackmparker"
@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "ticket-flow",
-      "description": "Four skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, and address-comments fixes review comments and merges the fix up the stack.",
+      "description": "Five skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, address-comments fixes review comments and merges the fix up the stack, and prod-handoff watches a prod deploy, moves the ticket to On Prod and tells QA to smoke test.",
       "source": "./",
       "category": "productivity"
     }
