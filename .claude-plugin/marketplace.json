@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "ticket-flow",
-      "description": "Five skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, address-comments fixes review comments and merges the fix up the stack, and prod-handoff watches a prod deploy, moves the ticket to On Prod and tells QA to smoke test.",
+      "description": "Six skills: dev-workflow gives one fixed set of steps for starting a ticket, deploying to staging, PR prep, master merges and component library bumps, jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, address-comments fixes review comments and merges the fix up the stack, and prod-handoff watches a prod deploy, moves the ticket to On Prod and tells QA to smoke test.",
       "source": "./",
       "category": "productivity"
     }

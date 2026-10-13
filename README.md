@@ -2,7 +2,7 @@
 
 Keep Jira tickets in step with their GitHub pull requests.
 
-A [Claude Code](https://claude.com/claude-code) plugin with five skills:
+A [Claude Code](https://claude.com/claude-code) plugin with six skills:
 
 | Skill | What it does | Say something like |
 |---|---|---|
@@ -11,6 +11,7 @@ A [Claude Code](https://claude.com/claude-code) plugin with five skills:
 | `catch-up` | Merges master into a branch in a git worktree and pushes. It never rebases or force-pushes. It stops on conflicts. | "Catch 40350 up with master" |
 | `address-comments` | Finds review threads on your open PRs where a reviewer has the last word. It fixes clear code requests, runs lint and specs, pushes, merges the fix into each PR stacked on top, and replies "Fixed in <sha>." For questions and suggestions it shows you a draft reply first. | "Address the review comments", "Cam left comments on 9208, fix them" |
 | `prod-handoff` | Waits for a production deploy you started. When it succeeds, it moves the ticket to On Prod and sends the QA person a Slack message to smoke test. When it fails, it does neither and reports the failed job. | "I just kicked off the prod deploy, watch it, move the ticket to on prod and message Tami" |
+| `dev-workflow` | One fixed set of steps for the daily ObservePoint workflow in moonbeam and op-component-library: start a ticket, deploy to a staging environment, get work ready for a PR, merge master in, and move a component library change into moonbeam. It sends each step to the right skill (`/jira-start`, `/deploy`, `/pr-create`, `catch-up`). | "Get my code on us7", "Is this ready for a PR?", "Merge from master" |
 
 ## Requirements
 
