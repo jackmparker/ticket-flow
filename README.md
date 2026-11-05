@@ -2,17 +2,20 @@
 
 Keep Jira tickets in step with their GitHub pull requests.
 
-A [Claude Code](https://claude.com/claude-code) plugin with seven skills:
+A [Claude Code](https://claude.com/claude-code) plugin with ten skills:
 
 | Skill | What it does | Say something like |
 |---|---|---|
 | `jira-sync` | Compares each ticket with its PR and moves the ticket forward. An approved PR moves the ticket to Ready for Staging. A merged PR moves it to Accepted. It never moves a ticket backward, and it does not move tickets in the columns that QA owns. | "Move any approved tickets into ready for staging", "See if any of the zoneless tickets need to be moved" |
 | `stack-cleanup` | Merges the top PR of a stack after you say yes (or picks up after you merged it), checks that the merged PR holds every lower PR, then closes the lower PRs with a comment, deletes their branches, and moves every ticket to Accepted. | "Merge the OP Agent stack and clean it up", "I just merged the top ticket in the stack for OP Agent" |
 | `catch-up` | Merges master into a branch in a git worktree and pushes. It never rebases or force-pushes. It stops on conflicts. | "Catch 40350 up with master" |
-| `address-comments` | Finds review threads on your open PRs where a reviewer has the last word. It fixes clear code requests, runs lint and specs, pushes, merges the fix into each PR stacked on top, and replies "Fixed in <sha>." For questions and suggestions it shows you a draft reply first. | "Address the review comments", "Cam left comments on 9208, fix them" |
+| `address-comments` | Finds review threads on your open PRs where a reviewer has the last word. It fixes clear code requests, runs lint and specs, pushes, merges the fix into each PR stacked on top, and replies "Fixed in <sha>." A fixed comment that no review pattern predicted is added to that repo's patterns file, so the next review checks for it. For questions and suggestions it shows you a draft reply first. | "Address the review comments", "Cam left comments on 9208, fix them" |
 | `prod-handoff` | Waits for a production deploy you started. When it succeeds, it moves the ticket to On Prod and sends the QA person a Slack message to smoke test. When it fails, it does neither and reports the failed job. | "I just kicked off the prod deploy, watch it, move the ticket to on prod and message Tami" |
 | `deploy-prod` | For moonbeam only. Runs three skills in order: `catch-up` merges master into the branch and pushes, the aikit `deploy` skill deploys it to prod and waits, and `prod-handoff` runs while the deploy runs. When the deploy succeeds, the ticket moves to On Prod and QA (Tami by default) gets a Slack message to smoke test. | "Deploy 40393 to prod" |
 | `mcp-merge` | For the observepoint-mcp repo only. Finds your approved MCP PRs and makes every required check pass. It fixes failed checks and conflicts itself, with a limit of 3 fix rounds per PR. It squash-merges one PR at a time, moves its ticket to Accepted, waits for the deploy to production, and catches the next PR up with main. | "Merge my reviewed MCP tickets" |
+| `start` | Does a ticket end to end with no pauses: creates a git worktree, runs the aikit `jira-start` skill in it, runs `ticket-verify` for the test plan, writes the code, runs `ticket-verify` again, and stops only to ask whether to commit and open the PR. Questions wait until research is done, and come all together. | "Start 40393", "Work on WORK-40393" |
+| `ticket-verify` | Run twice per ticket. After `jira-start`, a QA agent writes an adversarial test plan from the ticket and records the "before" state. When the code is written, it runs the gates, has the QA agent try to break the change in the browser (or against the API for backend repos), runs a code review that also checks the repo's past PR comments (`skills/ticket-verify/references/review-patterns/`), fixes the findings, runs a final check, attaches the report and before/after screenshots to the Jira ticket, and asks before the commit and PR. | "Verify this ticket", "Is 40393 ready for a PR" |
+| `refresh-patterns` | Brings a repo's review-patterns file up to date: fetches only the human review comments since the file's "Built on" date (`mine-review-comments.py`), merges them into the patterns, groups the "New, not yet grouped" entries that `address-comments` adds, commits, pushes, and updates the installed plugin. `ticket-verify` starts it in the background when a file is over 90 days old. | "Refresh the review patterns for moonbeam", "refresh-patterns all" |
 
 ## Requirements
 
@@ -23,6 +26,8 @@ A [Claude Code](https://claude.com/claude-code) plugin with seven skills:
 - `catch-up` also uses `aikit git backmerge`.
 - `prod-handoff` also uses `aikit circleci` and `aikit slack`.
 - `deploy-prod` also uses the aikit `deploy` skill.
+- `start` also uses the aikit `jira-start` skill and `aikit repo worktrees`.
+- `ticket-verify` also uses the aikit `code-review` skill, `aikit jira attachments`, and for moonbeam the browser setup in [agent-dev-setup](https://github.com/jackmparker/agent-dev-setup) (`moonbeam-dev`, `claim_tab()`).
 - `mcp-merge` also uses `aikit circleci` and `aikit git backmerge`, and a local clone of
   observepoint-mcp at `~/ObservePoint/observepoint-mcp`.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
   "name": "ticket-flow",
-  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, catch branches up with master, deploy moonbeam to prod and hand it off to QA, and merge approved MCP PRs.",
+  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, catch branches up with master, deploy moonbeam to prod and hand it off to QA, and merge approved MCP PRs, and verify a ticket with QA and review before its PR.",
   "owner": {
     "name": "Jack Parker",
     "url": "https://github.com/jackmparker"
@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "ticket-flow",
-      "description": "Seven skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, address-comments fixes review comments and merges the fix up the stack, prod-handoff watches a prod deploy, moves the ticket to On Prod and tells QA to smoke test, deploy-prod runs catch-up, the prod deploy and prod-handoff in one step, and mcp-merge merges approved observepoint-mcp PRs one at a time after it makes their checks pass.",
+      "description": "Ten skills: jira-sync moves tickets forward to match their PRs, stack-cleanup closes the lower PRs of a merged stack, catch-up merges master into a branch and pushes, address-comments fixes review comments and merges the fix up the stack, prod-handoff watches a prod deploy, moves the ticket to On Prod and tells QA to smoke test, deploy-prod runs catch-up, the prod deploy and prod-handoff in one step, and mcp-merge merges approved observepoint-mcp PRs one at a time after it makes their checks pass, start does a ticket end to end (worktree, jira-start, test plan, code, verify) and stops only at the commit question, and ticket-verify runs an adversarial QA agent (browser or API), a review against the repo's past PR comments, fixes and a final check, attaches the report and before/after screenshots to Jira, and asks before the commit and PR, and refresh-patterns keeps each repo's file of past review comments current.",
       "source": "./",
       "category": "productivity"
     }

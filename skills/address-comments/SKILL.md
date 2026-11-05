@@ -121,7 +121,24 @@ How to write the reply:
 - Plain words, no em dashes, no thanks-padding.
 - Do not resolve the thread. The reviewer resolves it.
 
-## 6. Report
+## 6. Teach the review patterns
+
+For each comment you fixed, open the repo's patterns file,
+`skills/ticket-verify/references/review-patterns/<repo>.md`, in the ticket-flow clone at
+`~/ObservePoint/ticket-flow` (clone it if missing, and `git pull --ff-only` first). If no pattern
+in that file already covers what the reviewer asked, the review missed it, so add one line under
+`## New, not yet grouped` at the end of the file (create the heading if it is missing):
+
+```
+- <YYYY-MM-DD> <reviewer login>: <what they asked for, one sentence>. <comment URL>
+```
+
+Skip comments that a pattern covers, questions, and praise. When you added lines, commit them on
+`main` with the message `Review patterns: new comments from <repo> #<pr>` and push. Do not update
+the installed plugin for this; `refresh-patterns` groups these lines later and updates it. If the
+pull or push fails, leave the lines uncommitted and say so in the report.
+
+## 7. Report
 
 ```
 Fixed 1 comment and replied:
@@ -134,5 +151,7 @@ Waiting for you (no code changed):
 
 Already answered, waiting on the reviewer: #9190 (1 thread).
 ```
+
+Add one line when step 6 added entries, for example "Added 2 new comments to the moonbeam review patterns."
 
 End with one next action, for example "Say 'post' to send the draft for #15."
