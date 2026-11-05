@@ -1,6 +1,6 @@
 ---
 name: start
-description: Use to start and do a Jira ticket from end to end. Examples - "start 40393", "start WORK-40393", "work on WORK-40393", "pick up 40393 and get it ready for a PR". It creates a git worktree, runs the aikit jira-start skill in it, has ticket-verify write an adversarial test plan and record the "before" state, writes the code, runs ticket-verify again (QA in the browser or against the API, a review against the repo's past PR comments, fixes, a final check, the Jira attachments), and stops only at the end to ask whether to commit and open a PR. Takes a ticket key or number.
+description: Use to start and do a Jira ticket from end to end. Examples - "start 40393", "start WORK-40393", "work on WORK-40393", "pick up 40393 and get it ready for a PR". It creates a git worktree, runs the aikit jira-start skill in it, has ticket-verify write an adversarial test plan and record the "before" state, writes the code, runs ticket-verify again (QA in the browser or against the API, a review against the repo's past PR comments, fixes, a final check), shows the report and screenshots, and stops only at the end to ask whether to commit, attach the evidence to Jira and open a PR. Takes a ticket key or number.
 ---
 
 # Start a ticket and take it to a PR
@@ -13,8 +13,9 @@ One skill for the whole ticket. It runs these steps in order, with no pause betw
 2. Run the aikit `jira-start` skill inside it.
 3. Run `ticket-flow:ticket-verify` (Plan phase): test plan and "before" state.
 4. Write the code.
-5. Run `ticket-flow:ticket-verify` (Verify phase): gates, QA, review, fixes, final check, Jira
-   attachments, and the question about the commit and PR.
+5. Run `ticket-flow:ticket-verify` (Verify phase): gates, QA, review, fixes, final check, the
+   evidence shown to the user, and the question about the commit and PR. Jira gets the evidence only
+   after a yes.
 
 Invoke the skills with the Skill tool. Do not copy their steps into this skill.
 
@@ -91,5 +92,7 @@ Invoke the Skill tool with `skill: "ticket-flow:ticket-verify"` and `args: "<KEY
 code changes, it runs its Verify phase and ends by asking the user whether to commit and open a
 PR. That question is where this skill stops.
 
-If the user says yes, commit, push and open the PR the way the user's rules say (ready for review,
-reviewers, Jira transition), then watch the PR's checks and fix failures.
+`ticket-verify` shows the user the report and the before and after screenshots first, and touches
+Jira only after the yes. If the user says yes, `ticket-verify` attaches the evidence to the ticket;
+then commit, push and open the PR the way the user's rules say (ready for review, reviewers, Jira
+transition), then watch the PR's checks and fix failures.

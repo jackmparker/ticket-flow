@@ -1,6 +1,6 @@
 ---
 name: ticket-verify
-description: Use to prove a ticket's code change works and reads well before it is committed. Examples - "verify this ticket", "run ticket-verify on 40393", "QA and review my changes", "is this ready for a PR". Run it twice per ticket - once right after jira-start (the QA agent writes the test plan and takes before screenshots), and again when the code is written (QA tries to break it in the browser or against the API, a review team checks the diff against the repo's patterns and past PR comments, fixes go in, a final check runs, and the report and screenshots are attached to the Jira ticket). It ends by asking whether to commit and open a PR. Takes a ticket key or number; with none, use the ticket of the current session.
+description: Use to prove a ticket's code change works and reads well before it is committed. Examples - "verify this ticket", "run ticket-verify on 40393", "QA and review my changes", "is this ready for a PR". Run it twice per ticket - once right after jira-start (the QA agent writes the test plan and takes before screenshots), and again when the code is written (QA tries to break it in the browser or against the API, a review team checks the diff against the repo's patterns and past PR comments, fixes go in, a final check runs, and the report and screenshots are shown to the user). It ends by asking whether to commit, attach the evidence to Jira and open a PR, and touches Jira only after a yes. Takes a ticket key or number; with none, use the ticket of the current session.
 ---
 
 # Verify a ticket before the PR
@@ -12,7 +12,7 @@ Two phases, run by two calls of this skill:
 | Phase | When | What happens |
 |---|---|---|
 | **Plan** | Right after `jira-start`, before any code | A QA agent reads the ticket, writes an adversarial test plan, and records the "before" state |
-| **Verify** | When the code for the ticket is written | Gates, QA run, code review, fixes, final check, Jira attachments, then ask to commit |
+| **Verify** | When the code for the ticket is written | Gates, QA run, code review, fixes, final check, show the evidence, ask, then attach to Jira on a yes |
 
 Pick the phase from the worktree: no changes against the base yet (`git diff origin/<base>` is
 empty, counting uncommitted edits) means **Plan**; any change means **Verify**. If **Verify** starts and no plan exists, run **Plan** first. The
@@ -147,7 +147,7 @@ After the last fix: gates again, then one fresh QA run of the acceptance-criteri
 case that failed in an earlier round. Take the final "after" screenshots in this run, so they show
 the code that will be committed.
 
-### 3.5 Report and Jira
+### 3.5 Report
 
 Write `report.md`, short enough to read in two minutes:
 
@@ -159,18 +159,35 @@ Write `report.md`, short enough to read in two minutes:
 6. Console errors and failed requests still seen, if any, and why they are not from this change.
 7. Screenshot pairs: before and after file names, one line on what changed.
 
-Before you attach anything, remove secrets from the report and screenshots: tokens, cookies,
-`accessKey` values, API keys, passwords, and customer data that is not test data. Jira is visible
-across the company.
+Remove secrets from the report and screenshots now: tokens, cookies, `accessKey` values, API
+keys, passwords, and customer data that is not test data. Jira is visible across the company.
+Name the report `<KEY>-verify-<date>.md` so a second run does not look like the first.
 
-Attach: `aikit jira attachments add <KEY> --file report.md --file before/<file> --file after/<file> ...`
-Name the report `<KEY>-verify-<date>.md` so a second run does not look like the first. Do not
-attach `runs/` or raw logs; the report holds what matters from them.
+Do not touch Jira yet. No attachment and no comment until the user says yes in 3.6.
 
-### 3.6 Ask
+### 3.6 Show the evidence and ask
 
-Show the user: the result line, the QA rounds, the count of review findings fixed and not changed,
-and the Jira link. Then ask whether to commit and open a PR. Do not commit or push before a yes.
+Show the user everything that will go to Jira, in the thread:
+
+- The result line, the QA rounds, and the count of review findings fixed and not changed.
+- The report: a link to its absolute path, and its test plan table and findings inline.
+- Every screenshot pair, embedded as images with absolute paths, before then after, each with its
+  one line on what changed: `![before](/abs/path/before/01-x.png) ![after](/abs/path/after/01-x.png)`.
+  For a backend change, the request and response pairs instead.
+- The exact list of files that will be attached.
+
+Then ask one question: commit, attach the evidence to the Jira ticket, and open the PR? Do not
+commit, push or touch Jira before a yes. If the user asks for changes to the code, the report or
+the screenshots, make them, run what they affect again (3.2 to 3.4), and show the evidence again.
+
+On a yes, attach first, then hand back to the caller (or commit and open the PR yourself when run
+alone):
+
+```bash
+aikit jira attachments add <KEY> --file <KEY>-verify-<date>.md --file before/<file> --file after/<file> ...
+```
+
+Do not attach `runs/` or raw logs; the report holds what matters from them.
 
 ### 3.7 Clean up
 
