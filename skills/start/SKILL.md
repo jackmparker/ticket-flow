@@ -42,11 +42,13 @@ Otherwise, from the repo's main checkout:
 
 ```bash
 git fetch origin <base>
-aikit repo worktrees create <key-lowercase> --base origin/<base> --detach
+aikit repo worktrees create <key-lowercase> --base origin/<base> --branch tmp/start-<key-lowercase>
 ```
 
-`--detach` makes no branch, because `jira-start` creates the real branch in the next step. Then
-`cd` into the printed `path`. Every later step runs there.
+`jira-start` refuses a worktree with no branch (detached HEAD), so the worktree gets a temporary
+branch. `jira-start` then creates the real branch from `origin/<base>` and switches to it; delete
+the temporary branch after that (step 3). Then `cd` into the printed `path`. Every later step runs
+there.
 
 Start the dependency install in the background now (`npm install` in moonbeam), so it runs while
 the next steps read the ticket.
@@ -58,8 +60,12 @@ Invoke the Skill tool with `skill: "jira-start"` and `args: "<KEY>"`, from insid
 When `jira-start` offers decisions, pick the option marked as default, unless the ticket or the
 user's rules say otherwise. Ask only when no option fits.
 
+Its first decision is the base branch, because the worktree is on `tmp/start-<key>`. The default,
+"Branch from `origin/<base>`", is right. Never pick "Branch from `tmp/start-<key>`".
+
 `jira-start` creates the branch from `origin/<base>`, and the user's rules add the ticket to the
-active sprint. Check that the branch is checked out in the worktree before you go on.
+active sprint. Check that the branch is checked out in the worktree, then delete the temporary
+branch: `git branch -D tmp/start-<key-lowercase>`.
 
 ## 4. Test plan
 
