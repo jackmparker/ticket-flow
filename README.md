@@ -2,7 +2,7 @@
 
 Keep Jira tickets in step with their GitHub pull requests.
 
-A [Claude Code](https://claude.com/claude-code) plugin with five skills:
+A [Claude Code](https://claude.com/claude-code) plugin with seven skills:
 
 | Skill | What it does | Say something like |
 |---|---|---|
@@ -11,6 +11,8 @@ A [Claude Code](https://claude.com/claude-code) plugin with five skills:
 | `catch-up` | Merges master into a branch in a git worktree and pushes. It never rebases or force-pushes. It stops on conflicts. | "Catch 40350 up with master" |
 | `address-comments` | Finds review threads on your open PRs where a reviewer has the last word. It fixes clear code requests, runs lint and specs, pushes, merges the fix into each PR stacked on top, and replies "Fixed in <sha>." For questions and suggestions it shows you a draft reply first. | "Address the review comments", "Cam left comments on 9208, fix them" |
 | `prod-handoff` | Waits for a production deploy you started. When it succeeds, it moves the ticket to On Prod and sends the QA person a Slack message to smoke test. When it fails, it does neither and reports the failed job. | "I just kicked off the prod deploy, watch it, move the ticket to on prod and message Tami" |
+| `deploy-prod` | For moonbeam only. Runs three skills in order: `catch-up` merges master into the branch and pushes, the aikit `deploy` skill deploys it to prod and waits, and `prod-handoff` runs while the deploy runs. When the deploy succeeds, the ticket moves to On Prod and QA (Tami by default) gets a Slack message to smoke test. | "Deploy 40393 to prod" |
+| `mcp-merge` | For the observepoint-mcp repo only. Finds your approved MCP PRs and makes every required check pass. It fixes failed checks and conflicts itself, with a limit of 3 fix rounds per PR. It squash-merges one PR at a time, moves its ticket to Accepted, waits for the deploy to production, and catches the next PR up with main. | "Merge my reviewed MCP tickets" |
 
 ## Requirements
 
@@ -20,6 +22,9 @@ A [Claude Code](https://claude.com/claude-code) plugin with five skills:
   moves go through `aikit jira`.
 - `catch-up` also uses `aikit git backmerge`.
 - `prod-handoff` also uses `aikit circleci` and `aikit slack`.
+- `deploy-prod` also uses the aikit `deploy` skill.
+- `mcp-merge` also uses `aikit circleci` and `aikit git backmerge`, and a local clone of
+  observepoint-mcp at `~/ObservePoint/observepoint-mcp`.
 
 ## Install
 
