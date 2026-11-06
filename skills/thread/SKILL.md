@@ -17,12 +17,12 @@ or fails):
 1. Rename this thread: `mcp__t3-code__t3_thread_update` with `action: "rename"` and
    `title: "Ticketflow Tasks"`. Omit `threadId`.
 2. Pin it: `mcp__t3-code__t3_thread_organize` with `action: "pin"`. Omit `threadId`.
-3. Unpin the older Ticketflow Tasks threads, so only the current one stays pinned: find threads titled
+3. Unpin and settle the older Ticketflow Tasks threads, so only the current one stays pinned and
+   open. The user starts a new one only when the old one is done. Find threads titled
    "Ticketflow Tasks" with `mcp__t3-code__t3_thread_list` (`allProjects: true`,
-   `titleContains: "Ticketflow"`, and compare titles without regard to case), and for each one
-   that is not this thread, call
-   `t3_thread_organize` with `action: "unpin"` and its `threadId`. Do not archive or settle them:
-   a task in one may still run.
+   `titleContains: "Ticketflow"`, and compare titles without regard to case). For each one that
+   is not this thread, call `t3_thread_organize` with its `threadId`, first with
+   `action: "unpin"`, then with `action: "settle"`. Do not archive them.
 
 Tell the user in one line that the Ticketflow Tasks thread is ready, then wait for the first command.
 
