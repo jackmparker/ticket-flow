@@ -36,6 +36,17 @@ not a question: take the default and name it in the final report.
   the repo from the ticket (its summary prefix, components, linked PRs), else ask.
 - Base branch: `master`, or `main` in a repo that has no `master`.
 
+**Thread title.** When the session runs in T3 Code (the `mcp__t3-code__t3_thread_update` tool
+exists; load it with ToolSearch), rename this thread so the user can find it in the sidebar:
+
+1. Get the summary: `aikit jira issues get <KEY> --fields summary`.
+2. Make the title `<KEY> <summary>`. Remove the area prefixes that end in `::` (for example
+   `FE :: Sources :: `). Cut the title to 60 characters at a word end.
+3. Call `mcp__t3-code__t3_thread_update` with `action: "rename"` and the title. Omit `threadId`.
+
+Example: `WORK-41083 Some parts of list view boxes don't respond to clicks`. If the tool does not
+exist or the call fails, go on. The title is not needed for the ticket.
+
 ## 2. Worktree
 
 If the session already runs in a worktree that has no commits and no changes of its own, use it.
