@@ -7,9 +7,12 @@ Refresh this file after about 20 more merged PRs, or when a second reviewer star
 
 Stack: Kotlin (some Java), Spring Boot, jOOQ (type-safe SQL), `openApi.yml` with generated models, Terraform in `infrastructure/`.
 
+Kind: each pattern has one. **breaks**: a bug, data loss, a security hole, a visual or accessibility break, or a broken deploy or caller. **theme**: a documented styling or design-system rule. **quality**: code that works today but has a concrete cost later (a second copy that will drift, dead code, logic in the wrong layer, a cast that hides a wrong type). **style**: naming, comment wording, idiom and layout. `ticket-verify` checks all four kinds on your own code. `pr-review` uses breaks and theme on a teammate's PR, quality only within its limit, and never style.
+
 ## Patterns
 
 ### 1. Keep the API contract clean and consistent
+Kind: quality
 robbimount asks that `openApi.yml` and the DTOs (data transfer objects) say exactly what the endpoint does. Do not reuse a response DTO as a request body when some of its fields are ignored on input; extend it for the response instead. Put all request data in the body of a POST, not partly in a query parameter. Keep paths and response shapes the same as sibling endpoints (for example `/support-requests/...`). Name DTOs for their purpose (for example `SupportRequestCollection`). Return dates with a zone (UTC), like other OP responses. Validate required request fields (for example `@NotEmpty` on `requestUrl`). After a POST, return what was stored, including server fields such as `createdAt`. Update `openApi.yml` in the same PR as the DTO.
 Check: a DTO used for POST or PUT has read-only fields such as `id` or `createdAt`. A POST endpoint also reads `@RequestParam`. A new path does not match the prefix of sibling endpoints. A date field is `LocalDateTime` in a response. A Kotlin DTO changed but `openApi.yml` did not.
 Seen: 11 comments on 4 PRs. https://github.com/observepoint/data-collection-dictionary-service/pull/65#discussion_r3359236401 , https://github.com/observepoint/data-collection-dictionary-service/pull/63#discussion_r3269822830
@@ -17,6 +20,7 @@ Raised by: robbimount
 In docs: partly (`CLAUDE.md` lists validation rules for one endpoint and says the spec drives code generation)
 
 ### 2. Make Kotlin types match reality, and avoid `!!`
+Kind: breaks
 If a field is required, make its type non-null instead of nullable with `@NotNull`. Give a non-null default (for example `numberJourneys: Int = 1`) instead of `Int?`. A nullable field that later needs `!!` is a sign of missing null handling and can throw a NullPointerException. Values written to S3 must be non-null. Decide once whether a missing value is `null` or `""`, and make the type say it.
 Check: a new `?` type carries `@NotNull`, `@NotBlank` or `@NotEmpty`. The diff adds `!!`. A field has type `String?` with default `""`.
 Seen: 7 comments on 3 PRs. https://github.com/observepoint/data-collection-dictionary-service/pull/56#discussion_r2976530673 , https://github.com/observepoint/data-collection-dictionary-service/pull/51#discussion_r2790585276
@@ -24,6 +28,7 @@ Raised by: robbimount
 In docs: no
 
 ### 3. Load configuration from Secrets Manager or Parameter Store at startup
+Kind: quality
 Pass configuration through AWS Secrets Manager or SSM (AWS Systems Manager) Parameter Store entries, bootstrapped in `application.properties`, not through Terraform environment variables. Inject values with `@Value` on constructor parameters, or use `lateinit var` in config classes, so a missing value fails fast. Do not give a config property a fake default, do not mark real imports `optional:`, and do not re-check config on every request (use `@PostConstruct` if a check is needed at all).
 Check: the diff adds `environment` entries in `infrastructure/*.tfvars` or `*.tf`. A `@ConfigurationProperties` class has defaults such as `= ""`. A `spring.config.import` line uses `optional:`. A service method validates config on each call.
 Seen: 5 comments on 2 PRs. https://github.com/observepoint/data-collection-dictionary-service/pull/56#discussion_r2976600108 , https://github.com/observepoint/data-collection-dictionary-service/pull/54#discussion_r2874117795
@@ -31,6 +36,7 @@ Raised by: robbimount
 In docs: partly (`CLAUDE.md` "AWS Secrets Management" shows the import pattern but not the rules above)
 
 ### 4. Write idiomatic Kotlin and drop what is not used
+Kind: style
 Use a `data class` for models, also with validation annotations. Use `?.let { }` instead of an `if (x != null)` block. Remove Jackson annotations on classes that are never deserialized (keep `@JsonInclude`). Remove fields that only repeat the enum name.
 Check: a new model is a plain `class` with only properties. A new `if (x != null)` assigns from a nullable call. `@JsonCreator` or `@JsonProperty` appears on a response-only class.
 Seen: 4 comments on 3 PRs. https://github.com/observepoint/data-collection-dictionary-service/pull/63#discussion_r3268748239 , https://github.com/observepoint/data-collection-dictionary-service/pull/63#discussion_r3268606260
@@ -38,6 +44,7 @@ Raised by: robbimount, kostiantyn-dementiev-op
 In docs: no
 
 ### 5. Add dependencies at their latest stable version
+Kind: quality
 When a PR adds or pins a library, use the newest stable release unless there is a known conflict, so the PR does not add tech debt. Do not use an unstable version. If a version must stay pinned, add a comment that says why (for example REST Assured for integration tests).
 Check: a new line in `build.gradle` names a version older than the latest release, or a milestone, release candidate (RC) or snapshot version, with no comment.
 Seen: 3 comments on 2 PRs. https://github.com/observepoint/data-collection-dictionary-service/pull/63#discussion_r3268478583 , https://github.com/observepoint/data-collection-dictionary-service/pull/56#discussion_r2968296911

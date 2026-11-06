@@ -6,9 +6,12 @@ Built on 2026-11-05 from all 353 closed or merged PRs since the repo's first PR 
 
 Most quality control in this repo is mechanical. `npm run check` runs about 120 rules (84 repo checks, 27 local ESLint rules, type rules and tests). `AGENTS.md` names the rule that enforces each invariant. Rules marked "Judgement" there are the ones only review catches, so read them before you review.
 
+Kind: each pattern has one. **breaks**: a bug, data loss, a security hole, a visual or accessibility break, or a broken deploy or caller. **theme**: a documented styling or design-system rule. **quality**: code that works today but has a concrete cost later (a second copy that will drift, dead code, logic in the wrong layer, a cast that hides a wrong type). **style**: naming, comment wording, idiom and layout. `ticket-verify` checks all four kinds on your own code. `pr-review` uses breaks and theme on a teammate's PR, quality only within its limit, and never style.
+
 ## Patterns
 
 ### 1. Make every policy table and gate cover every name and method the change adds
+Kind: breaks
 
 Reviewers check that a new tool, method or name spelling reaches every policy that keys on it: the role check, the method-class table, the tool annotations. A gap means a client or a customer gets past a gate that should stop them.
 

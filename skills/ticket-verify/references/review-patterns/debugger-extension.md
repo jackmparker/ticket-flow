@@ -4,9 +4,12 @@ Built on 2026-11-05 from human review comments on `observepoint/debugger-extensi
 
 How to use it: check the diff against each pattern. Report a hit only when the diff adds or changes the code in question. Do not report old code near the change. CI does not run `npm run lint` or the extension's Jest tests (it runs only the `api/tag-matching` tests). Run both in `extension/` yourself.
 
+Kind: each pattern has one. **breaks**: a bug, data loss, a security hole, a visual or accessibility break, or a broken deploy or caller. **theme**: a documented styling or design-system rule. **quality**: code that works today but has a concrete cost later (a second copy that will drift, dead code, logic in the wrong layer, a cast that hides a wrong type). **style**: naming, comment wording, idiom and layout. `ticket-verify` checks all four kinds on your own code. `pr-review` uses breaks and theme on a teammate's PR, quality only within its limit, and never style.
+
 ## Patterns
 
 ### 1. Remove what the change leaves behind.
+Kind: quality
 Reviewers find unused functions, unused SCSS variables, empty rulesets, leftover comments, debug logging, and a spec that no longer tests anything. Lint reports unused TypeScript variables only as a warning, and nothing checks SCSS.
 Check: for each symbol the diff stops using, search for other users. In changed `.scss` files, flag a `$variable` that nothing reads and a selector with an empty body. Flag `console.log`, commented-out code, and comments that describe a past state. Flag a spec whose cases were all removed or skipped.
 Seen: ~9 comments, ~5 PRs. https://github.com/observepoint/debugger-extension/pull/201#discussion_r2976285824, https://github.com/observepoint/debugger-extension/pull/161#discussion_r2695249403, https://github.com/observepoint/debugger-extension/pull/152#discussion_r2643617727, https://github.com/observepoint/debugger-extension/pull/150#discussion_r2628651491, https://github.com/observepoint/debugger-extension/pull/220#discussion_r3572071865
@@ -14,6 +17,7 @@ Raised by: jackmparker, GutzC
 In docs: no
 
 ### 2. Simplify conditions and keep chains readable.
+Kind: style
 Reviewers ask for `if (this._selectors?.length)` in place of a longer null and length check, for line breaks in a long `map().concat().map()` chain, and for removal of guards against a value the type says cannot occur (`startTimeStamp` is required on `IRequest`, so a `0` branch is dead and breaks sorting if it ever runs).
 Check: flag `x && x.length > 0` and similar where `x?.length` does the job. Flag a chain of more than two calls on one line. For each new guard on a field, check the interface. If the field is required, ask why the guard exists.
 Seen: 4 comments, 3 PRs. https://github.com/observepoint/debugger-extension/pull/159#discussion_r2683683144, https://github.com/observepoint/debugger-extension/pull/157#discussion_r2684004799, https://github.com/observepoint/debugger-extension/pull/154#discussion_r2663356612
@@ -21,6 +25,7 @@ Raised by: jackmparker, taylor1791
 In docs: no
 
 ### 3. Put shared SCSS colors in the shared mixin.
+Kind: theme
 Components copied from moonbeam kept color values in each component file. The reviewer asked for them in the mixin the components already include.
 Check: in changed `.scss` files under `apps/devtools-panel/`, flag a color value that repeats in two or more component files, or that sits next to an `@include` of a mixin that holds related colors.
 Seen: 3 comments, 1 PR. https://github.com/observepoint/debugger-extension/pull/152#discussion_r2643606570, https://github.com/observepoint/debugger-extension/pull/152#discussion_r2643610305
@@ -28,6 +33,7 @@ Raised by: jackmparker
 In docs: no
 
 ### 4. Do not write what current Angular does by default.
+Kind: style
 Reviewers ask to delete `standalone: true`, the default since Angular 19. The extension is on Angular 21. (A third comment asked for `@if` in place of `*ngIf`. Lint now catches that, so it is listed under "Lint already catches".)
 Check: flag `standalone: true` in a new or changed `@Component`, `@Directive` or `@Pipe`.
 Seen: 2 comments, 2 PRs. https://github.com/observepoint/debugger-extension/pull/161#discussion_r2695218470, https://github.com/observepoint/debugger-extension/pull/149#discussion_r2620798524

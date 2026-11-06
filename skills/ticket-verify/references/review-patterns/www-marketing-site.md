@@ -6,9 +6,12 @@ This file covers two repos: `observepoint/www-marketing-site` (the WordPress the
 
 How to use it: check the diff against each item. Report a hit only when the diff adds or changes the code in question. Do not report old code near the change. Also read `CLAUDE.md` in www-marketing-site. It holds the rules reviewers rely on (content migrations, ACF image fields, partials, admin screens), and most of them are not repeated here.
 
+Kind: each pattern has one. **breaks**: a bug, data loss, a security hole, a visual or accessibility break, or a broken deploy or caller. **theme**: a documented styling or design-system rule. **quality**: code that works today but has a concrete cost later (a second copy that will drift, dead code, logic in the wrong layer, a cast that hides a wrong type). **style**: naming, comment wording, idiom and layout. `ticket-verify` checks all four kinds on your own code. `pr-review` uses breaks and theme on a teammate's PR, quality only within its limit, and never style.
+
 ## Patterns
 
 ### 1. A content migration must not half-write content that marketing may have changed on prod.
+Kind: breaks
 Marketing edits production directly. A migration that keeps one field because prod changed it, but still writes the fields that go with it, leaves the page in a mixed state (old paragraph, new list repeated under it).
 Check: for each migration in `migrations/`, find each field it writes only on a condition. Confirm that the fields that depend on it use the same condition. Confirm that the migration writes only the fields it names (`--fields=<a,b,c>` on scaffolds).
 Seen: 1 comment, 1 PR. https://github.com/observepoint/www-marketing-site/pull/148#discussion_r4471268125
@@ -16,6 +19,7 @@ Raised by: GutzC
 In docs: yes (`CLAUDE.md` "Migrations must touch only what they explicitly name")
 
 ### 2. Do not ship placeholder content to production as an indexable page.
+Kind: breaks
 A migration switched a live page onto a new template with Lorem ipsum panels, "[Copy TBD]" answers, and CTA buttons with `href=""` and `target="_blank"`. Staging edits do not flow to prod.
 Check: grep new migrations and templates for `Lorem`, `TBD`, `href=""` and empty CTA fields. If the page must ship before marketing fills it, set `noindex, nofollow` until it is done, and add a `todo` to the migration `notes`.
 Seen: 1 comment, 1 PR. https://github.com/observepoint/www-marketing-site/pull/130#discussion_r4146064917
@@ -23,6 +27,7 @@ Raised by: GutzC
 In docs: partly (README describes the `notes` `todo` checklist for marketing)
 
 ### 3. Keep file-header comments true to what the code and migration do.
+Kind: style
 A template header said the template was not the live page, while the migration in the same PR made it the live page.
 Check: read each header comment in a changed template or migration. Compare it with what the migrations in the diff do.
 Seen: 1 comment, 1 PR. https://github.com/observepoint/www-marketing-site/pull/130#discussion_r4146064904
@@ -30,6 +35,7 @@ Raised by: GutzC
 In docs: partly (`CLAUDE.md` "File-header comments explain WHY")
 
 ### 4. Form validation scripts must keep Gravity Forms' own markup and messages correct.
+Kind: breaks
 Two findings in one script. A blur handler returned early when a "This field is required." message was already shown, so the real domain error never replaced it. The handler also overwrote `aria-describedby` (Gravity Forms sets `gfield_description_<id>`), and the clear step removed the attribute, so the field lost its description link.
 Check: in new form scripts under `assets/js/`, confirm that each error state replaces the text of an existing message. Confirm that `aria-describedby` is appended to and restored, never set or removed outright.
 Seen: 2 comments, 1 PR. https://github.com/observepoint/www-marketing-site/pull/135#discussion_r4223934114, https://github.com/observepoint/www-marketing-site/pull/135#discussion_r4223934124
@@ -37,6 +43,7 @@ Raised by: GutzC
 In docs: no
 
 ### 5. Remove CSS rules that do nothing.
+Kind: quality
 A `flex: 0 0 304px` sat on an element whose parent was not a flex container, and a breakpoint reset undid that dead rule.
 Check: for each new `flex`, `flex-basis`, `grid-*` or `order` rule, confirm that the parent is a flex or grid container at that breakpoint.
 Seen: 1 comment, 1 PR. https://github.com/observepoint/www-marketing-site/pull/131#discussion_r4146063735
@@ -44,6 +51,7 @@ Raised by: GutzC
 In docs: no
 
 ### 6. Do not commit empty asset files.
+Kind: quality
 A new background SVG had no content.
 Check: each new file under `assets/images/` or `migration-assets/` has a non-zero size, and each SVG contains drawable elements.
 Seen: 1 comment, 1 PR. https://github.com/observepoint/www-marketing-site/pull/64#discussion_r3012329447
@@ -51,6 +59,7 @@ Raised by: GutzC
 In docs: no
 
 ### 7. Do not add `rel="noopener"` to links to our own pages.
+Kind: style
 Reviewers want referrers on links between ObservePoint sites. The same request came up on the same ticket in `pricing-calculator`.
 Check: flag `rel="noopener"` or `rel="noreferrer"` on a link to an `observepoint.com` page or help doc.
 Seen: 1 comment here, 1 in pricing-calculator. https://github.com/observepoint/www-marketing-site/pull/73#discussion_r3149970063, https://github.com/observepoint/pricing-calculator/pull/22#discussion_r3150284400
@@ -58,6 +67,7 @@ Raised by: djsmith42, jackmparker
 In docs: no
 
 ### 8. Do not commit merge conflict markers. (edge only)
+Kind: breaks
 A helper file kept `<<<<<<<` and `>>>>>>>` lines after a merge.
 Check: grep the diff for lines that start with `<<<<<<<`, `=======` or `>>>>>>>`.
 Seen: 1 comment, 1 PR. https://github.com/observepoint/www-edge-marketing-site/pull/4#discussion_r2561628791

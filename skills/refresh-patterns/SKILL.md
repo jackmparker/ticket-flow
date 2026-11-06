@@ -56,7 +56,11 @@ branch, then:
 4. Moves a pattern to `## Lint already catches` when lint now enforces it, and deletes one that the
    repo's guidance or tooling made out of date. Note a reviewer who now asks for the opposite.
 5. Keeps the order by frequency and the file's format: numbered instruction headings with the
-   lines Check:, Seen:, Raised by:, In docs:. Keep it under about 250 lines.
+   lines Kind:, Check:, Seen:, Raised by:, In docs:. Keep it under about 250 lines.
+   Kind is one of breaks, theme, quality or style, as the legend above `## Patterns` defines.
+   Give a new pattern its kind, and check the kind of a pattern whose text changed. When unsure
+   between two kinds, pick the lower one (style is lowest): `pr-review` must not post a nitpick
+   because a pattern was ranked too high.
 6. Updates the intro: "Built on <today>", and the totals.
 
 Writing style for the files: short sentences, simple words, active voice, no em dashes.
