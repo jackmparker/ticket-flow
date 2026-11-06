@@ -140,3 +140,10 @@ In docs: no
 - Formatting, import order and unused imports: Spotless runs google-java-format for Java and ktfmt for Kotlin on every compile, and a GitHub Action commits `spotlessApply` on each PR.
 - `.editorconfig` sets 100 columns, 2-space indent, final newline and no trailing spaces. The Spotless formatters enforce their own fixed style, which matches it.
 - Java unchecked and deprecation warnings: `-Xlint:unchecked` and `deprecation = true` in `op.java-conventions.gradle` (warnings only).
+
+## New, not yet grouped
+- 2026-11-06 robbimount: log a 4xx that means our own request was wrong (for example a 400 from an internal service) at error level with the response's error text, not at info level like a normal user rejection. https://github.com/observepoint/data-collection-api/pull/863#discussion_r4498237875
+- 2026-11-06 robbimount: give each distinct result its own sealed-type case instead of one case with a status code that callers split again. https://github.com/observepoint/data-collection-api/pull/863#discussion_r4498237884
+- 2026-11-06 robbimount: do not keep the same identity twice in one object (a nullable, mutable source object and its copied ids); keep only the non-null copies. https://github.com/observepoint/data-collection-api/pull/863#discussion_r4498237890
+- 2026-11-06 robbimount: an optional string field in an OpenAPI request needs `minLength: 1` when an empty value would pass a "needs X or Y" rule. https://github.com/observepoint/data-collection-api/pull/863#discussion_r4498237900
+- 2026-11-06 robbimount: write an external service's limit (for example AppConfig's 15 s minimum poll) as one named constant, and `require` that configured values respect it. https://github.com/observepoint/data-collection-api/pull/863#discussion_r4498237908
