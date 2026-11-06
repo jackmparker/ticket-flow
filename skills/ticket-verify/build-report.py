@@ -2,6 +2,11 @@
 """Build the ticket's evidence PDF and Jira comment from one data file.
 
     python3 build-report.py <evidence dir>
+    python3 build-report.py --embed <evidence dir> <attach result.json>
+
+The second form runs after `aikit jira attachments add`: it reads that command's JSON output and
+puts the attached files (the PDF, and the logs file when there is one) into comment.json as file
+cards, so the ticket gets ONE comment that holds the summary and the PDF.
 
 Reads <dir>/report.json (format below) and the screenshots in <dir>/before/ and <dir>/after/.
 Writes:
@@ -171,6 +176,16 @@ def bullets(items):
     return {"type": "bulletList", "content": [{"type": "listItem", "content": [{"type": "paragraph", "content": [text(i)]}]} for i in items]}
 
 
+def closing_line(r, pdf_name, logs_name):
+    """The last line of every comment; the attached files are shown right below it."""
+    what = "full details and before and after screenshots" if r.get("pairs") else (
+        "full details and the requests before and after" if r.get("api_pairs") else "full details")
+    line = f"For {what}, see the attached PDF ({pdf_name})."
+    if logs_name:
+        line += f" Logs are in {logs_name}."
+    return line
+
+
 def build_comment(r, pdf_name, logs_name):
     cases = r.get("cases", [])
     passed = sum(1 for c in cases if c.get("result") == "pass")
@@ -179,17 +194,38 @@ def build_comment(r, pdf_name, logs_name):
     if more > 0:
         found = found[:COMMENT_MAX_ITEMS] + [f"{more} more in the report."]
     content = [
-        {"type": "paragraph", "content": [text(f"Verified before the PR. Full report: {pdf_name}" + (f", logs: {logs_name}" if logs_name else ""))]},
+        {"type": "paragraph", "content": [text("Verified before the PR.")]},
         {"type": "paragraph", "content": [text(f"Result: {r.get('result')}. {passed} of {len(cases)} test cases pass after {r.get('qa_rounds')} QA round(s).")]},
         {"type": "paragraph", "content": [text("Found and fixed:")]},
         bullets(found) if found else {"type": "paragraph", "content": [text("Nothing.")]},
         {"type": "paragraph", "content": [text("Still open:")]},
         bullets(r["still_open"]) if r.get("still_open") else {"type": "paragraph", "content": [text("None.")]},
+        {"type": "paragraph", "content": [text(closing_line(r, pdf_name, logs_name))]},
     ]
     return {"type": "doc", "version": 1, "content": content}
 
 
+def embed(d, attach_result_path):
+    """Add the attached files to comment.json as file cards (an ADF mediaGroup at the end, below the closing line)."""
+    result = json.load(open(attach_result_path))
+    media = [a["media"] for a in result.get("attachments", []) if a.get("status") == "ok" and a.get("media")]
+    failed = [a.get("file") for a in result.get("attachments", []) if a.get("status") != "ok"]
+    if failed:
+        sys.exit(f"build-report: these files did not attach, so the comment was not changed: {failed}")
+    comment_path = os.path.join(d, "comment.json")
+    doc = json.load(open(comment_path))
+    doc["content"] = [c for c in doc["content"] if c.get("type") != "mediaGroup"]  # safe to run twice
+    if media:
+        group = {"type": "mediaGroup", "content": [{"type": "media", "attrs": m} for m in media]}
+        doc["content"].append(group)
+    json.dump(doc, open(comment_path, "w"), indent=1)
+    print(json.dumps({"comment": comment_path, "embedded": len(media),
+                      "not_embedded": [a["filename"] for a in result.get("attachments", []) if a.get("status") == "ok" and not a.get("media")]}))
+
+
 def main():
+    if len(sys.argv) == 4 and sys.argv[1] == "--embed":
+        return embed(os.path.abspath(sys.argv[2]), sys.argv[3])
     if len(sys.argv) != 2:
         sys.exit(__doc__)
     d = os.path.abspath(sys.argv[1])

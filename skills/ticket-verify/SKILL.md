@@ -191,12 +191,20 @@ report or the screenshots, make them, run what they affect again (3.2 to 3.4), b
 again, and show it again.
 
 On a yes, post to Jira first, then hand back to the caller (or commit and open the PR yourself when
-run alone):
+run alone). The ticket gets ONE comment from the user, with the summary and the PDF in it, not a
+loose attachment. `aikit jira` uses the user's own Jira login, so the comment is posted as them.
 
 ```bash
-aikit jira attachments add <KEY> --file <each path in "attach" from build-report.py>
+aikit jira attachments add <KEY> --file <each path in "attach"> > <evidence folder>/attach-result.json
+python3 <this skill folder>/build-report.py --embed <evidence folder> <evidence folder>/attach-result.json
 aikit jira issues comment <KEY> --adf <evidence folder>/comment.json
 ```
+
+The first command uploads the PDF (and the `-logs.txt` file when there is one). The second puts
+them into `comment.json` as file cards at the end, right below its last line: "For full details and
+before and after screenshots, see the attached PDF". Every comment ends with that line. The third posts the one
+comment. If an upload fails, `--embed` stops: upload the failed file again, then run `--embed`
+again. Post the comment once per yes; do not post a second comment for the same report.
 
 "attach" holds the PDF, and the `-logs.txt` file only when there was long text (logs, full API
 bodies). Keep long text out of the PDF: `build-report.py` moves it to that file.
