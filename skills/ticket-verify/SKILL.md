@@ -1,6 +1,6 @@
 ---
 name: ticket-verify
-description: Use to prove a ticket's code change works and reads well before it is committed. Examples - "verify this ticket", "run ticket-verify on 40393", "QA and review my changes", "is this ready for a PR". Run it twice per ticket - once right after jira-start (the QA agent writes the test plan and takes before screenshots), and again when the code is written (QA tries to break it in the browser or against the API, a review team checks the diff against the repo's patterns and past PR comments, fixes go in, a final check runs, and the report and screenshots are shown to the user). It ends by asking whether to commit, attach the evidence to Jira and open a PR, and touches Jira only after a yes. Takes a ticket key or number; with none, use the ticket of the current session.
+description: Use to prove a ticket's code change works and reads well before it is committed. Examples - "verify this ticket", "run ticket-verify on 40393", "QA and review my changes", "is this ready for a PR". Run it twice per ticket - once right after jira-start (the QA agent writes the test plan and takes before screenshots), and again when the code is written (QA tries to break it in the browser or against the API, a review team checks the diff against the repo's patterns and past PR comments, fixes go in, a final check runs, and the report PDF and screenshots are shown to the user). It ends by asking whether to commit, attach the evidence to Jira and open a PR, and touches Jira only after a yes: one PDF attachment and one short comment. Takes a ticket key or number; with none, use the ticket of the current session.
 ---
 
 # Verify a ticket before the PR
@@ -38,7 +38,8 @@ plan.md              the test plan
 before/  after/      screenshots, same names in both (01-reports-gallery.png)
 runs/round-<n>.md    each QA run: case results, console errors, failed requests
 review.md            review findings and what was done with each
-report.md            the summary that goes to Jira
+report.json          the facts for the report (format in build-report.py)
+<KEY>-verify-<date>.pdf, comment.json   built by build-report.py; what goes to Jira
 ```
 
 ## 1. Resolve the ticket, repo and level
@@ -149,45 +150,46 @@ the code that will be committed.
 
 ### 3.5 Report
 
-Write `report.md`, short enough to read in two minutes:
+Jira gets two things: one PDF with all the evidence, and one short comment. Never attach loose
+screenshots or logs.
 
-1. Result: ready, or not ready and why.
-2. Level and why; repo; base commit and head commit.
-3. Test plan table with the final result of each case, and the number of QA rounds.
-4. Problems QA found and how each was fixed.
-5. Review findings and what was done with each.
-6. Console errors and failed requests still seen, if any, and why they are not from this change.
-7. Screenshot pairs: before and after file names, one line on what changed.
-
-Remove secrets from the report and screenshots now: tokens, cookies, `accessKey` values, API
-keys, passwords, and customer data that is not test data. Jira is visible across the company.
-Name the report `<KEY>-verify-<date>.md` so a second run does not look like the first.
+1. Write `report.json` in the evidence folder, from `plan.md`, the last QA run and `review.md`.
+   The format is at the top of `build-report.py` (in this skill folder). "found_fixed" holds what
+   QA found and the review fixes that changed behavior, one line each: what broke, and what it does
+   now. Wording and naming nitpicks go in "review" only. "still_open" is never left out; an empty
+   list prints "None".
+2. Remove secrets from `report.json` and the screenshots now: tokens, cookies, `accessKey` values,
+   API keys, passwords, and customer data that is not test data. Jira is visible across the company.
+3. Build: `python3 <this skill folder>/build-report.py <evidence folder>`. It writes
+   `<KEY>-verify-<date>.pdf` (summary and test plan first, then one page per before and after pair,
+   review findings, and a logs appendix) and `comment.json` (the short Jira comment). It prints the
+   paths as JSON.
 
 Do not touch Jira yet. No attachment and no comment until the user says yes in 3.6.
 
 ### 3.6 Show the evidence and ask
 
-Show the user everything that will go to Jira, in the thread:
+Show the user, in the thread:
 
 - The result line, the QA rounds, and the count of review findings fixed and not changed.
-- The report: a link to its absolute path, and its test plan table and findings inline.
+- A link to the PDF (absolute path), so they can open it.
 - Every screenshot pair, embedded as images with absolute paths, before then after, each with its
   one line on what changed: `![before](/abs/path/before/01-x.png) ![after](/abs/path/after/01-x.png)`.
   For a backend change, the request and response pairs instead.
-- The exact list of files that will be attached.
+- The comment text exactly as it will be posted.
 
-Then ask one question: commit, attach the evidence to the Jira ticket, and open the PR? Do not
-commit, push or touch Jira before a yes. If the user asks for changes to the code, the report or
-the screenshots, make them, run what they affect again (3.2 to 3.4), and show the evidence again.
+Then ask one question: commit, attach the PDF and post the comment on the Jira ticket, and open the
+PR? Do not commit, push or touch Jira before a yes. If the user asks for changes to the code, the
+report or the screenshots, make them, run what they affect again (3.2 to 3.4), build the report
+again, and show it again.
 
-On a yes, attach first, then hand back to the caller (or commit and open the PR yourself when run
-alone):
+On a yes, post to Jira first, then hand back to the caller (or commit and open the PR yourself when
+run alone):
 
 ```bash
-aikit jira attachments add <KEY> --file <KEY>-verify-<date>.md --file before/<file> --file after/<file> ...
+aikit jira attachments add <KEY> --file <evidence folder>/<KEY>-verify-<date>.pdf
+aikit jira issues comment <KEY> --adf <evidence folder>/comment.json
 ```
-
-Do not attach `runs/` or raw logs; the report holds what matters from them.
 
 ### 3.7 Clean up
 
