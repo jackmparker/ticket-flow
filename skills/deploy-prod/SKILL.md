@@ -1,6 +1,6 @@
 ---
 name: deploy-prod
-description: Use when asked to deploy a moonbeam ticket to production in one step. It first checks that the branch does not pin a component library snapshot (an unmerged or unreleased op-component-library PR); it stops if the library PR must merge first, and bumps moonbeam to the release when one exists. Examples - "deploy 40393 to prod", "ship WORK-40393 to prod and tell Tami", "run deploy-prod on this branch". It runs three skills in order - catch-up (merge master into the branch and push), the aikit deploy skill to prod, then prod-handoff (move the tickets to On Prod and message QA) while the deploy runs. prod-handoff then starts ticket-flow:merge in watch mode: as soon as QA moves every ticket to Ready for Merge, it merges the PR and moves the tickets to Accepted. Works for one ticket's PR and for a combined PR that holds several tickets. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional person to message (default Tami). With no ticket, use the branch or PR of the current session. moonbeam only.
+description: Use when asked to deploy a moonbeam ticket to production in one step. It first checks that the branch does not pin a component library snapshot (an unmerged or unreleased op-component-library PR); it stops if the library PR must merge first, and bumps moonbeam to the release when one exists. Examples - "deploy 40393 to prod", "ship WORK-40393 to prod and tell Tami", "run deploy-prod on this branch". It runs three skills in order - catch-up (merge master into the branch and push), the aikit deploy skill to prod, then prod-handoff (move the tickets to On Prod and message QA) while the deploy runs. prod-handoff then starts ticket-flow:merge in watch mode: as soon as QA moves every ticket to Ready for Merge, it merges the PR and moves the tickets to Accepted. Works for one ticket's PR, a combined PR that holds several tickets, and a stack of PRs. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional person to message (default Tami). With no ticket, use the branch or PR of the current session. moonbeam only.
 ---
 
 # Deploy a moonbeam ticket to production
@@ -40,6 +40,12 @@ If the PR is merged or closed, stop and say so.
 
 A ticket that is in a combined PR finds two open PRs: its own and the combined one (the title
 lists several keys). Deploy the combined PR.
+
+**Stack.** If another open PR targets this PR's branch, or this PR targets a branch that is not
+master, the PR is part of a stack. Deploy the top PR (the one that no other PR targets): its branch
+holds the whole stack. The tickets are the keys of every PR in the chain, from the top PR down to
+the PR that targets master. Find the chain as `ticket-flow:merge` step 1 says (walk down by
+`baseRefName`). Pass every key to `prod-handoff` in step 5.
 
 The person to message is Tami, unless the user named someone else.
 

@@ -20,6 +20,12 @@ not to merge.
 (a bare number after a `WORK-` key is a WORK key too) and the keys in the body's ticket table.
 Every step below acts on all of them.
 
+**Stack.** If another open PR targets this PR's branch, or this PR targets a branch that is not
+master, the PR is part of a stack. The prod deploy runs on the top PR (the one that no other PR targets). The tickets are the keys of every PR in the chain, from the top PR down to
+the PR that targets master. Find the chain as `ticket-flow:merge` step 1 says (walk down by
+`baseRefName`).
+Keys that the request names (for example from `deploy-prod`) are tickets too.
+
 ## 1. Resolve the PR and the person
 
 | Input | How |

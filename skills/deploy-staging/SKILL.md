@@ -1,6 +1,6 @@
 ---
 name: deploy-staging
-description: Use when asked to deploy a moonbeam ticket to staging. It deploys to US2 (the user's own FE staging environment) unless the user names another environment such as US8. Examples - "deploy 41083 to staging", "send 9442 to us2", "deploy WORK-41083 to us8". It merges master into the branch and pushes (ticket-flow:catch-up), deploys at once with the aikit deploy skill without waiting for the DefaultPR checks, and when the deploy lands sets each ticket's Environment field and moves every ticket to On Stage - Ready for Test. Meanwhile it watches DefaultPR; if it fails, it fixes the cause, pushes after the deploy ends, and deploys to the environment again. Works for one ticket's PR and for a combined PR that holds several tickets. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional environment. With no ticket, use the branch or PR of the current session. moonbeam only.
+description: Use when asked to deploy a moonbeam ticket to staging. It deploys to US2 (the user's own FE staging environment) unless the user names another environment such as US8. Examples - "deploy 41083 to staging", "send 9442 to us2", "deploy WORK-41083 to us8". It merges master into the branch and pushes (ticket-flow:catch-up), deploys at once with the aikit deploy skill without waiting for the DefaultPR checks, and when the deploy lands sets each ticket's Environment field and moves every ticket to On Stage - Ready for Test. Meanwhile it watches DefaultPR; if it fails, it fixes the cause, pushes after the deploy ends, and deploys to the environment again. Works for one ticket's PR, a combined PR that holds several tickets, and a stack of PRs. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional environment. With no ticket, use the branch or PR of the current session. moonbeam only.
 ---
 
 # Deploy a moonbeam ticket to staging
@@ -40,6 +40,12 @@ If the PR is merged or closed, stop and say so.
 keys in the body's ticket table. Do not use the branch name: a combined branch such as
 `bug/combined/fe-bugs-2026-11-06` holds no key. For that reason, do not pass `--jira` to the
 `deploy` skill. Step 5 moves the tickets.
+
+**Stack.** If another open PR targets this PR's branch, or this PR targets a branch that is not
+master, the PR is part of a stack. Deploy the top PR (the one that no other PR targets): its branch
+holds the whole stack. The tickets are the keys of every PR in the chain, from the top PR down to
+the PR that targets master. Find the chain as `ticket-flow:merge` step 1 says (walk down by
+`baseRefName`).
 
 **Environment**: `us2`, unless the user named another one (`us8`, `ua6`, `dave`). Use the short
 name in lowercase for the deploy, and in uppercase for Jira (`us8` -> `US8`, `dave` -> `Dave`).
