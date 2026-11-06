@@ -166,10 +166,11 @@ screenshots or logs.
    API keys, passwords, and customer data that is not test data. Jira is visible across the company.
 3. Build: `python3 <this skill folder>/build-report.py <evidence folder>`. It writes
    `<KEY>-verify-<date>.pdf`, one to three pages: the result, found and fixed, still open, review
-   findings not changed (with the reason), one short line per test case, then the before and after
-   pairs. Long text (logs, full API bodies) goes to `<KEY>-verify-<date>-logs.txt` instead. It also
+   findings not changed (with the reason), the full test plan as one table (final result per case, with
+   a short round history), then the before and after pairs. Long text (logs, full API bodies) goes to `<KEY>-verify-<date>-logs.txt` instead. It also
    writes `comment.json`, the short Jira comment, and prints what to attach as JSON ("attach").
-   Keep "check" in each case to a few words; the full steps stay in `plan.md`.
+   The test plan is ONE table: each case once, with its steps, expected result and final result,
+   and its result in each round from `runs/round-<n>.md` ("rounds"). Never one table per round.
 
 Do not touch Jira yet. No attachment and no comment until the user says yes in 3.6.
 

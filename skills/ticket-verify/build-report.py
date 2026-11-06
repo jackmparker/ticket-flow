@@ -16,7 +16,10 @@ report.json:
   "result": "ready" | "not ready", "result_note": "one line",
   "level": "full" | "light", "level_note": "why",
   "repo": "moonbeam", "base": "<sha>", "head": "<sha>", "qa_rounds": 2,
-  "cases": [{"id": "1", "check": "what was checked, a few words", "result": "pass" | "fail", "note": "..."}],
+  "cases": [{"id": "1", "area": "...", "steps": "...", "expected": "...", "result": "pass" | "fail",
+             "rounds": ["fail", "pass"], "added_in": 1, "note": "..."}],
+    One row per case, with its FINAL result. "rounds" is its result in each QA round, in order;
+    "added_in" is the round that added it (1 when it was in the plan). Never one table per round.
   "found_fixed": [{"what": "what broke", "fix": "what it does now", "source": "QA" | "Review"}],
   "review": [{"finding": "...", "action": "fixed" | "not changed" | "asked user", "note": "..."}],
   "still_open": ["..."],
@@ -86,6 +89,18 @@ def table(rows, cols, cls_col=None):
     return f"<table><tr>{head}</tr>{body}</table>"
 
 
+def history(case):
+    """'all rounds' when nothing changed, else 'R1 fail, R2 pass'; notes a case added in a later round."""
+    rounds = case.get("rounds") or []
+    start = int(case.get("added_in") or 1)
+    if not rounds:
+        return ""
+    if all(x == rounds[-1] for x in rounds) and start == 1:
+        return "all rounds"
+    text = ", ".join(f"R{start + i} {x}" for i, x in enumerate(rounds))
+    return f"added in R{start}: {text}" if start > 1 else text
+
+
 def long_text(r):
     """The text that goes to the separate file: long logs and every API detail. Empty when none."""
     out = []
@@ -105,7 +120,7 @@ def build_html(r, d, logs_name):
     review = r.get("review", [])
     kept = [x for x in review if x.get("action") != "fixed"]
     for c in cases:
-        c.setdefault("check", c.get("expected") or c.get("area"))
+        c["history"] = history(c)
     parts = [
         f"<h1>{e(r['key'])}: {e(r.get('summary'))}</h1>",
         f'<div class="sub">Verified {e(r.get("date"))} · {e(r.get("repo"))} · base {e(r.get("base", "")[:10])}, head {e(r.get("head", "")[:10])}</div>',
@@ -117,7 +132,9 @@ def build_html(r, d, logs_name):
     ]
     if kept:
         parts += ["<h2>Review findings not changed</h2>", table(kept, [("finding", "Finding"), ("note", "Why not")])]
-    parts += ["<h2>Test cases</h2>", table(cases, [("id", "#"), ("check", "Checked"), ("result", "Result"), ("note", "Note")], cls_col="result")]
+    parts += [f"<h2>Test plan (final result of each case, {e(r.get('qa_rounds'))} QA round(s))</h2>",
+              table(cases, [("id", "#"), ("area", "Area"), ("steps", "Steps"), ("expected", "Expected"), ("result", "Result"),
+                            ("history", "Rounds"), ("note", "Note")], cls_col="result")]
     pairs = r.get("pairs", [])
     if pairs:
         parts.append('<h2 style="page-break-before: always">Before and after</h2>')
