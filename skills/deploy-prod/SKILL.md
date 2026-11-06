@@ -1,6 +1,6 @@
 ---
 name: deploy-prod
-description: Use when asked to deploy a moonbeam ticket to production in one step. It first checks that the branch does not pin a component library snapshot (an unmerged or unreleased op-component-library PR); it stops if the library PR must merge first, and bumps moonbeam to the release when one exists. Examples - "deploy 40393 to prod", "ship WORK-40393 to prod and tell Tami", "run deploy-prod on this branch". It runs three skills in order - catch-up (merge master into the branch and push), the aikit deploy skill to prod, then prod-handoff (move the ticket to On Prod and message QA) while the deploy runs. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional person to message (default Tami). With no ticket, use the branch or PR of the current session. moonbeam only.
+description: Use when asked to deploy a moonbeam ticket to production in one step. It first checks that the branch does not pin a component library snapshot (an unmerged or unreleased op-component-library PR); it stops if the library PR must merge first, and bumps moonbeam to the release when one exists. Examples - "deploy 40393 to prod", "ship WORK-40393 to prod and tell Tami", "run deploy-prod on this branch". It runs three skills in order - catch-up (merge master into the branch and push), the aikit deploy skill to prod, then prod-handoff (move the tickets to On Prod and message QA) while the deploy runs. prod-handoff then starts ticket-flow:merge in watch mode: as soon as QA moves every ticket to Ready for Merge, it merges the PR and moves the tickets to Accepted. Works for one ticket's PR and for a combined PR that holds several tickets. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional person to message (default Tami). With no ticket, use the branch or PR of the current session. moonbeam only.
 ---
 
 # Deploy a moonbeam ticket to production
@@ -14,7 +14,9 @@ One skill for the full prod deploy of a moonbeam ticket. It runs a check and thr
 2. `ticket-flow:catch-up` merges master into the branch and pushes.
 3. The aikit `deploy` skill deploys the branch to `prod` and waits for the result.
 4. `ticket-flow:prod-handoff` starts while the deploy runs. When the deploy succeeds, it moves the
-   ticket to On Prod and sends QA a Slack message to smoke test.
+   tickets to On Prod, sends QA a Slack message to smoke test, and starts `ticket-flow:merge` in
+   watch mode. That merges the PR and moves the tickets to Accepted as soon as QA moves them all
+   to Ready for Merge.
 
 Invoke each skill with the Skill tool. Do not copy their steps into this skill. Each skill has its
 own checks and stops, and they all apply here.
@@ -35,6 +37,9 @@ is for moonbeam only.
 | Nothing | The ticket, PR or branch that this session already worked on. If there is none, ask |
 
 If the PR is merged or closed, stop and say so.
+
+A ticket that is in a combined PR finds two open PRs: its own and the combined one (the title
+lists several keys). Deploy the combined PR.
 
 The person to message is Tami, unless the user named someone else.
 
@@ -151,7 +156,7 @@ Invoke the Skill tool with `skill: "ticket-flow:prod-handoff"` and these `args`:
 
 ```
 <KEY> <PR url> message <person>. The deploy skill already waits for workflow <workflow-uuid>
-and decides the result. Do not start a second wait. Do steps 1 and 2 now, then do steps 4 to 6
+and decides the result. Do not start a second wait. Do steps 1 and 2 now, then do steps 4 to 7
 only when the deploy skill reports that the prod deploy job succeeded.
 ```
 
@@ -162,7 +167,7 @@ When the `deploy` skill's wait ends:
 
 | Deploy result | Action |
 |---|---|
-| The prod deploy job succeeded | Finish `prod-handoff` steps 4 to 6: move the ticket to On Prod, message QA, report |
+| The prod deploy job succeeded | Finish `prod-handoff` steps 4 to 7: move the tickets to On Prod, message QA, start the merge watch, report |
 | The prod deploy job failed | Do not move the ticket and do not send the message. Report what the `deploy` skill found |
 | `on_hold` on an `e2e-bypass-approve-*` job | The E2E tests failed. Never approve it and never ask the user to approve it. Report the failed tests. Do not move the ticket and do not send the message |
 
@@ -177,8 +182,7 @@ WORK-40393 is on prod.
 2. Catch-up: merged master into feature/work-40393-toolbar and pushed (12 commits came in).
 3. Deploy: pipeline 25075, the prod deploy job passed. https://app.observepoint.com
 4. Moved WORK-40393 from Ready for Prod to On Prod. Sent Tami a Slack message to smoke test #9230.
-
-Next: merge #9230 into master after Tami signs off.
+5. Watching Jira once a minute. When Tami moves WORK-40393 to Ready for Merge, I merge #9230 and move it to Accepted.
 ```
 
 On failure, name the step that stopped, the reason, and what was not done.

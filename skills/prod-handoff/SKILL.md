@@ -1,17 +1,24 @@
 ---
 name: prod-handoff
-description: Use when the user has started a production deploy and asks you to watch it, move the ticket to On Prod when it lands, and tell QA they can smoke test. Examples - "I just kicked off the prod deploy, watch it and move the ticket to on prod when it's there, then message tami", "watch the prod deploy for 40393 and let QA know", "tell Tami to smoke test when 9230 is on prod". Takes a ticket number, ticket key, PR URL or number, or branch name, plus the person to message. With no ticket, use the branch or PR of the current session.
+description: Use when the user has started a production deploy and asks you to watch it, move the ticket (or every ticket of a combined PR) to On Prod when it lands, tell QA they can smoke test, and then start ticket-flow:merge in watch mode, which merges the PR and moves the tickets to Accepted as soon as QA moves them to Ready for Merge. Examples - "I just kicked off the prod deploy, watch it and move the ticket to on prod when it's there, then message tami", "watch the prod deploy for 40393 and let QA know", "tell Tami to smoke test when 9230 is on prod". Takes a ticket number, ticket key, PR URL or number, or branch name, plus the person to message. With no ticket, use the branch or PR of the current session.
 ---
 
 # Hand a prod deploy off to QA
 
 ## Overview
 
-Wait for a production deploy to finish. When it succeeds, move the Jira ticket to On Prod and
-send the QA person a Slack message that they can smoke test. When it fails, do neither.
+Wait for a production deploy to finish. When it succeeds, move the Jira tickets to On Prod,
+send the QA person a Slack message that they can smoke test, and start the merge watch (step 6).
+When it fails, do none of these.
 
 The user started the deploy and asked for the message, so do not ask again before you move the
-ticket or send the message.
+tickets, send the message or start the merge watch. Skip the merge watch only when the user says
+not to merge.
+
+**Tickets.** A PR can hold one ticket or several (a combined PR, for example
+"WORK-41048 + 41060 + 41064: FE bug fixes (combined)"). The tickets are every key in the PR title
+(a bare number after a `WORK-` key is a WORK key too) and the keys in the body's ticket table.
+Every step below acts on all of them.
 
 ## 1. Resolve the PR and the person
 
@@ -60,7 +67,7 @@ Read the ticket status now:
 aikit jira issues get <KEY> | jq -r '.status.name'
 ```
 
-If the ticket is not in `Ready for Prod`, tell the user before the deploy ends. The move in
+Read it for every ticket. If a ticket is not in `Ready for Prod`, tell the user before the deploy ends. The move in
 step 4 skips QA columns only if the user agrees.
 
 ## 3. Wait
@@ -88,46 +95,54 @@ Tell the user the pipeline number, the job that runs now, and what you will do w
 | `on_hold` | A job waits for approval. Tell the user. Wait again after they approve |
 | `reason` is not `terminal` (timeout) | Check `aikit circleci workflows get <uuid>`. If it still runs, wait again |
 
-## 4. Move the ticket
+## 4. Move the tickets
 
-Move it from Ready for Prod to On Prod with the "Deployed" transition. Use the ID, not the
-name.
+Move every ticket from Ready for Prod to On Prod with the "Deployed" transition. Use the ID, not
+the name.
 
 ```bash
-aikit jira issues transitions apply <KEY> --transition-id 131
+aikit jira issues transitions apply <KEY1> <KEY2> ... --transition-id 131
 ```
 
 If ID 131 fails (another project), run `aikit jira issues transitions list <KEY>` and pick the
 transition whose target is `On Prod`. Never pick `Nevermind`, `Closed` or any backward move.
 
-If the ticket is already in On Prod or a later column, do not move it.
+If a ticket is already in On Prod or a later column, do not move it.
 
 ## 5. Message QA
 
-Send one short message. Name the ticket, what changed, and the PR.
+Send one short message. Name the tickets, what changed, and the PR.
 
 ```bash
 aikit slack send <alias> "<KEY> is on prod and ready for a smoke test: <PR title>. <PR url>"
+aikit slack send <alias> "WORK-41048, WORK-41060 and WORK-41064 are on prod and ready for a smoke test: <PR title>. <PR url>"
 ```
 
 Do not send it if the deploy failed, or if step 4 failed for a reason other than "already
 moved".
 
-## 6. Report
+## 6. Start the merge watch
+
+Invoke the Skill tool with `skill: "ticket-flow:merge"` and `args: "watch <PR url> <KEY1> <KEY2> ..."`.
+It checks Jira once a minute. As soon as QA has moved every ticket to Ready for Merge, it merges the
+PR, closes the tickets' own PRs for a combined PR, and moves the tickets to Accepted.
+
+Start it only when the deploy succeeded and the tickets are in On Prod.
+
+## 7. Report
 
 ```
 WORK-40393 is on prod. Pipeline 25075 passed.
 Moved WORK-40393 from Ready for Prod to On Prod.
 Sent Tami a Slack message to smoke test #9230.
-
-Next: merge #9230 after Tami signs off.
+Watching Jira once a minute. When Tami moves WORK-40393 to Ready for Merge, I merge #9230 and move it to Accepted.
 ```
 
 On failure:
 
 ```
 The prod deploy for WORK-40393 failed in `build-prod` (pipeline 25075): <job url>.
-I did not move the ticket or message Tami.
+I did not move the ticket, message Tami or start the merge watch.
 
 Next: open the job log and rerun the workflow from failed.
 ```

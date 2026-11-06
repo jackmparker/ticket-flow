@@ -47,7 +47,7 @@ by key. The default repo is the repo of the current directory. When there is non
 
 - Ignore PRs whose title starts with "DON'T REVIEW" (proofs of concept). List them in the report.
 - A ticket with no PR: check for a branch (`gh api 'repos/<owner/repo>/branches?per_page=100' --paginate --jq '.[].name' | grep -i <key>`). Report "no PR yet" and do not move it.
-- A PR that is `CLOSED` but not merged: check whether its head commit is in a merged PR (see `stack-cleanup`). If it is, treat it as merged by that PR.
+- A PR that is `CLOSED` but not merged: check whether its head commit is in a merged PR (see `merge`). If it is, treat it as merged by that PR.
 - `reviewDecision` already accounts for dismissed reviews. Trust it.
 
 ## 3. Decide
