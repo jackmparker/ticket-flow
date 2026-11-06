@@ -61,3 +61,13 @@ In docs: no
 ## Lint already catches
 - Formatting and import order: Spotless runs google-java-format for Java and ktfmt for Kotlin, `compileJava` depends on `spotlessApply`, and a pre-commit hook applies it.
 - Indent, line endings and final newline: `.editorconfig`.
+
+## New, not yet grouped
+- 2026-11-06 robbimount: apply a search filter while paging upstream, not after a cap on fetched rows, so a search reaches every record. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105684
+- 2026-11-06 robbimount: do not make per-row HTTP calls (contact or admin enrichment) for a whole list when only one page is returned. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105701
+- 2026-11-06 robbimount: when a list is capped, tell the client (a truncated flag), not only a server log. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105709
+- 2026-11-06 robbimount: compute a sort key once per row; parsing (with thrown exceptions) inside a comparator runs on every comparison. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105722
+- 2026-11-06 robbimount: a comparator that mixes numeric and text order is not transitive and can make TimSort throw. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105763
+- 2026-11-06 robbimount: guard int arithmetic on client-supplied offsets against overflow. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105780
+- 2026-11-06 robbimount: do not copy the same paging loop into two services; put it in one helper in util/. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105807
+- 2026-11-06 robbimount: every new util class gets its own unit test, like the others in src/test/kotlin/.../util/. https://github.com/observepoint/data-collection-dictionary-service/pull/77#discussion_r4496105842
