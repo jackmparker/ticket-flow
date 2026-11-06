@@ -55,6 +55,8 @@ report.json          the facts for the report (format in build-report.py)
    that invokes the Skill tool with `skill: "ticket-flow:refresh-patterns"` and `args: "<repo>"`,
    and go on with the file you have. Do not wait for it. Also apply the entries under
    `## New, not yet grouped` in the file: they are recent misses that no pattern holds yet.
+   QA misses file: `references/qa-misses/<repo>.md` in this skill folder, when it exists. It lists
+   bugs that QA found after this skill passed a ticket (the `fix` skill adds them).
 5. Kind of change:
    - **UI**: the repo serves screens (moonbeam, op-component-library). QA runs in the browser.
    - **Backend**: everything else. QA runs against the API, the CLI or the tests.
@@ -85,6 +87,8 @@ evidence folder, and ask for `plan.md` and the "before" state. The plan:
   - Backend: invalid and missing fields, wrong types, unknown ids, duplicate requests, permission
     checks, large payloads, and the effect on existing data and callers.
 - No mobile cases unless the ticket is about a narrow screen.
+- Give the QA agent the QA misses file (step 1) when it exists. For each entry that fits the
+  change, add its test as a case. These are bugs that past QA runs missed.
 
 **"Before" state.**
 - UI: screenshots only of what the ticket will change visually, before the change: at most 3,
