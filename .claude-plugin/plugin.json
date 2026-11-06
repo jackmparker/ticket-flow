@@ -1,7 +1,7 @@
 {
   "name": "ticket-flow",
   "version": "1.11.1",
-  "description": "Keep Jira tickets in step with their GitHub PRs: sync statuses, clean up merged PR stacks, catch branches up with master, address review comments up the stack, hand prod deploys off to QA, deploy moonbeam to prod in one step, merge approved MCP PRs, start a ticket and take it to a PR in one run, and verify a ticket with adversarial QA and a review against past PR comments before the PR, and keep those review patterns current. Uses gh and the aikit Jira CLI.",
+  "description": "Take a Jira ticket from start to Accepted: write and verify the code, review teammates' PRs, fix review comments and QA bugs, deploy moonbeam to staging and prod, and merge single, combined and stacked PRs. Moves the Jira tickets at each step and learns from every review comment and QA bug. Uses gh and the aikit CLI.",
   "author": {
     "name": "Jack Parker",
     "url": "https://github.com/jackmparker"
@@ -13,6 +13,9 @@
     "jira",
     "github",
     "pull-requests",
+    "code-review",
+    "qa",
+    "deploy",
     "stacked-prs",
     "gh-cli"
   ]
