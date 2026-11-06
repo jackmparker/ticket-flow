@@ -41,7 +41,7 @@ exists; load it with ToolSearch), rename this thread so the user can find it in 
 
 1. Get the summary: `aikit jira issues get <KEY> --fields summary`.
 2. Make the title `<KEY> <summary>`. Remove the area prefixes that end in `::` (for example
-   `FE :: Sources :: `). Cut the title to 60 characters at a word end.
+   `FE :: Sources :: `). Cut the title to 70 characters at a word end.
 3. Call `mcp__t3-code__t3_thread_update` with `action: "rename"` and the title. Omit `threadId`.
 
 Example: `WORK-41083 Some parts of list view boxes don't respond to clicks`. If the tool does not
