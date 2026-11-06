@@ -66,7 +66,7 @@ report.json          the facts for the report (format in build-report.py)
 |---|---|---|
 | Test plan | Adversarial plan, all categories in step 2 | Happy path plus the 2 riskiest cases |
 | Review | `code-review` skill, all areas | One reviewer subagent with the patterns file |
-| Screenshots | Every changed screen and state | The changed screen |
+| Screenshots | Visual changes only, at most 3, cropped | One, cropped |
 
 ## 2. Plan phase: the QA agent writes the plan
 
@@ -87,7 +87,10 @@ evidence folder, and ask for `plan.md` and the "before" state. The plan:
 - No mobile cases unless the ticket is about a narrow screen.
 
 **"Before" state.**
-- UI: screenshots of each screen and state the plan covers, before the change. Use
+- UI: screenshots only of what the ticket will change visually, before the change: at most 3,
+  each cropped to the area that changes (`Page.captureScreenshot` with a `clip` around the element),
+  not the whole screen. A behavior change with no visual difference gets no screenshot; its test
+  case is the proof. Use
   `https://master.observepointstaging.com` when its `master` is the branch's base. Otherwise run
   the base in its own worktree with `moonbeam-dev start`. Same window size, account, data and
   theme as the "after" shots will use.
@@ -111,15 +114,16 @@ lint on the changed files, and the specs for the changed folders. In moonbeam:
 Start the QA subagent again, fresh, with `plan.md`, the diff (`git diff <base>...HEAD`), the
 evidence folder and the round number. It runs every case and writes `runs/round-<n>.md`:
 
-- Each case: pass or fail, what it saw, and the screenshot or response for it.
+- Each case: pass or fail, and what it saw. Screenshots only for the visual changes planned in
+  step 2, plus one for a failure whose cause is visual.
 - Every browser console error and every failed network request (status 4xx or 5xx) that it met,
   with the page or request where it happened, even when the case passed.
 - New problems it found outside the plan, added as new cases.
 
 UI: the QA agent uses browser-harness with its own client id, so it never shares your window:
 `BU_CLIENT=<session id>-qa browser-harness -c '...'`. It starts each call with `claim_tab()`,
-uses the checkout's `moonbeam-dev url`, takes the "after" screenshots under the same names as the
-"before" ones, and calls `release_tab()` when done.
+uses the checkout's `moonbeam-dev url`, takes the "after" screenshots with the same names and the
+same crop as the "before" ones, and calls `release_tab()` when done.
 
 Backend: it runs the service or tests locally, calls the endpoints or commands for each case, and
 records request, status and body.
@@ -161,9 +165,11 @@ screenshots or logs.
 2. Remove secrets from `report.json` and the screenshots now: tokens, cookies, `accessKey` values,
    API keys, passwords, and customer data that is not test data. Jira is visible across the company.
 3. Build: `python3 <this skill folder>/build-report.py <evidence folder>`. It writes
-   `<KEY>-verify-<date>.pdf` (summary and test plan first, then one page per before and after pair,
-   review findings, and a logs appendix) and `comment.json` (the short Jira comment). It prints the
-   paths as JSON.
+   `<KEY>-verify-<date>.pdf`, one to three pages: the result, found and fixed, still open, review
+   findings not changed (with the reason), one short line per test case, then the before and after
+   pairs. Long text (logs, full API bodies) goes to `<KEY>-verify-<date>-logs.txt` instead. It also
+   writes `comment.json`, the short Jira comment, and prints what to attach as JSON ("attach").
+   Keep "check" in each case to a few words; the full steps stay in `plan.md`.
 
 Do not touch Jira yet. No attachment and no comment until the user says yes in 3.6.
 
@@ -187,9 +193,12 @@ On a yes, post to Jira first, then hand back to the caller (or commit and open t
 run alone):
 
 ```bash
-aikit jira attachments add <KEY> --file <evidence folder>/<KEY>-verify-<date>.pdf
+aikit jira attachments add <KEY> --file <each path in "attach" from build-report.py>
 aikit jira issues comment <KEY> --adf <evidence folder>/comment.json
 ```
+
+"attach" holds the PDF, and the `-logs.txt` file only when there was long text (logs, full API
+bodies). Keep long text out of the PDF: `build-report.py` moves it to that file.
 
 ### 3.7 Clean up
 
