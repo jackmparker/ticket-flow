@@ -2,7 +2,7 @@
 
 Keep Jira tickets in step with their GitHub pull requests.
 
-A [Claude Code](https://claude.com/claude-code) plugin with ten skills:
+A [Claude Code](https://claude.com/claude-code) plugin with eleven skills:
 
 | Skill | What it does | Say something like |
 |---|---|---|
@@ -11,6 +11,7 @@ A [Claude Code](https://claude.com/claude-code) plugin with ten skills:
 | `catch-up` | Merges master into a branch in a git worktree and pushes. It never rebases or force-pushes. It stops on conflicts. | "Catch 40350 up with master" |
 | `address-comments` | Finds review threads on your open PRs where a reviewer has the last word. It fixes clear code requests, runs lint and specs, pushes, merges the fix into each PR stacked on top, and replies "Fixed in <sha>." A fixed comment that no review pattern predicted is added to that repo's patterns file, so the next review checks for it. For questions and suggestions it shows you a draft reply first. | "Address the review comments", "Cam left comments on 9208, fix them" |
 | `prod-handoff` | Waits for a production deploy you started. When it succeeds, it moves the ticket (or every ticket of a combined PR) to On Prod, sends the QA person a Slack message to smoke test, and starts `merge` in watch mode. When it fails, it does none of these and reports the failed job. | "I just kicked off the prod deploy, watch it, move the ticket to on prod and message Tami" |
+| `deploy-staging` | For moonbeam only. Deploys to US2 (your own FE staging environment), or to another environment you name, such as US8. It merges master into the branch and pushes, deploys at once without waiting for DefaultPR, and when the deploy lands sets each ticket's Environment field and moves every ticket to On Stage - Ready for Test. It watches DefaultPR meanwhile: on a failure it fixes the cause, pushes after the deploy ends and deploys again. For an environment other than US2, it first stops if QA tests someone else's tickets there. | "Deploy 41083 to staging", "Send 9442 to us8" |
 | `deploy-prod` | For moonbeam only. First checks that the branch does not pin a component library snapshot: it stops when the library PR or its release is not merged yet, and pins moonbeam to the release when one exists. Then runs three skills in order: `catch-up` merges master into the branch and pushes, the aikit `deploy` skill deploys it to prod and waits, and `prod-handoff` runs while the deploy runs. When the deploy succeeds, the tickets move to On Prod, QA (Tami by default) gets a Slack message to smoke test, and `merge` merges the PR as soon as QA moves the tickets to Ready for Merge. | "Deploy 40393 to prod" |
 | `mcp-merge` | For the observepoint-mcp repo only. Finds your approved MCP PRs and makes every required check pass. It fixes failed checks and conflicts itself, with a limit of 3 fix rounds per PR. It squash-merges one PR at a time, moves its ticket to Accepted, waits for the deploy to production, and catches the next PR up with main. | "Merge my reviewed MCP tickets" |
 | `start` | Does a ticket end to end with no pauses: creates a git worktree, runs the aikit `jira-start` skill in it, runs `ticket-verify` for the test plan, writes the code, runs `ticket-verify` again, and stops only to ask whether to commit and open the PR. Questions wait until research is done, and come all together. | "Start 40393", "Work on WORK-40393" |
