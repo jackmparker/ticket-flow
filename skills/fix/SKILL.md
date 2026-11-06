@@ -1,6 +1,6 @@
 ---
 name: fix
-description: Use when feedback on the user's tickets needs a code fix - review comments on their open PRs, or a bug that QA found and reported in Jira (the ticket is in Waiting for Fix). It reads the feedback, reproduces a QA bug first, fixes it in the ticket's own branch, checks it (lint, specs, and for a QA bug a QA run in the browser), carries the fix into combined branches and up stacks, then decides by itself what comes next from the ticket's state - push only, or redeploy to the staging environment that runs the ticket and move it back to On Stage. It replies on the GitHub thread or with a short Jira comment for QA, and teaches ticket-verify what reviewers and QA caught. Examples - "fix what Tami found in 41060", "fix 41060", "address the review comments", "Cam left comments on 9208, fix them", "check my PRs and tickets for anything that needs fixing". With no arguments, check every open PR the user authored and every ticket of theirs in Waiting for Fix. A ticket key, PR URL or number, or a repo narrows the set.
+description: Use when feedback on the user's tickets needs a code fix - review comments on their open PRs, or a bug that QA found and reported in Jira (the ticket is in Waiting for Fix). It reads the feedback, skips a QA bug that is already fixed and on its way to the environment, reproduces a QA bug first, fixes it in the ticket's own branch, checks it (lint, specs, and for a QA bug a QA run in the browser), carries the fix into combined branches and up stacks, then decides by itself what comes next from the ticket's state - push only, or redeploy to the staging environment that runs the ticket and move it back to On Stage. It replies on the GitHub thread or with a short Jira comment for QA, and teaches ticket-verify what reviewers and QA caught. Examples - "fix what Tami found in 41060", "fix 41060", "address the review comments", "Cam left comments on 9208, fix them", "check my PRs and tickets for anything that needs fixing". With no arguments, check every open PR the user authored and every ticket of theirs in Waiting for Fix. A ticket key, PR URL or number, or a repo narrows the set.
 ---
 
 # Fix review comments and QA bugs
@@ -84,6 +84,37 @@ example US2).
 
 Group all feedback by ticket. A ticket's PR is the open PR whose title holds its key and no other
 key (its own PR), not the combined PR.
+
+**Is a QA bug already handled?** Someone (you, another agent, the user) may have fixed it, and the
+ticket stays in `Waiting for Fix` until a deploy lands. Before you work on such a ticket, check:
+
+1. QA's time: when QA posted the comment with the bug (T).
+2. Fix commits after T. Fetch, then look on the ticket's own branch and on each combined branch or
+   stack top that holds it (step 6 says how to find them):
+
+   ```bash
+   git fetch origin
+   git log origin/<ticket branch> --no-merges --since=<T> --format='%h %cI %s'
+   git log origin/<combined branch> --no-merges --since=<T> --grep=<KEY> --format='%h %cI %s'
+   ```
+
+3. A "Fixed in" comment from the user on the ticket after T.
+4. A deploy to the ticket's environment that runs now, for one of those branches: in
+   `aikit circleci pipelines list --project gh/observepoint/moonbeam --branch <branch> --limit 3`,
+   a `BuildAndDeploy_Stage` workflow whose `deploy-<env>` job (`aikit circleci workflows get <id>`)
+   is running or queued.
+5. A deploy that already landed with the fix: `<skill folder>/env-branch.sh <env>` names one of
+   those branches, and its commit holds the fix commit
+   (`git merge-base --is-ancestor <fix sha> <deployed commit>`).
+
+| What you find | Action |
+|---|---|
+| No fix commit and no "Fixed in" comment | Not handled. Fix it (steps 2 to 10) |
+| A fix commit, and a deploy with it runs now | Do not touch the code. Wait for that deploy job in the background (`aikit circleci workflows wait <id>`). When its `deploy-<env>` job succeeded and the ticket is still in `Waiting for Fix`, set its Environment field and move it with transition 371 (step 5 of `deploy-staging` says how). Report "fix on its way" |
+| A fix commit, and a deploy with it already landed | The fix is on the environment, but nobody moved the ticket. Move it as above, and post the Jira comment for QA (step 8) if the user has not |
+| A fix commit, and no deploy with it | Do not fix again. Start at step 5 with that commit as the fix: it decides whether to redeploy |
+
+Name the fix commit and who made it in the report.
 
 ## 2. Get the branch
 
