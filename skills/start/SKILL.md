@@ -1,6 +1,6 @@
 ---
 name: start
-description: Use to start and do a Jira ticket from end to end. Examples - "start 40393", "start WORK-40393", "work on WORK-40393", "pick up 40393 and get it ready for a PR". It creates a git worktree, runs the aikit jira-start skill in it, has ticket-verify write an adversarial test plan and record the "before" state, writes the code, runs ticket-verify again (QA in the browser or against the API, a review against the repo's past PR comments, fixes, a final check), shows the report and screenshots, and stops only at the end to ask whether to commit, attach the evidence to Jira and open a PR. Takes a ticket key or number.
+description: Use to start and do a Jira ticket from end to end. Examples - "start 40393", "start WORK-40393", "work on WORK-40393", "pick up 40393 and get it ready for a PR". It creates a git worktree, runs the aikit jira-start skill in it, has ticket-verify write an adversarial test plan and record the "before" state, for a backend ticket stops once to show the user the design decisions (queries, shared code, reuse, who can call it) and waits for approval, writes the code, runs ticket-verify again (QA in the browser or against the API, a review against the repo's past PR comments, fixes, a final check), shows the report and screenshots, and at the end asks whether to commit, attach the evidence to Jira and open a PR. Takes a ticket key or number.
 ---
 
 # Start a ticket and take it to a PR
@@ -12,16 +12,17 @@ One skill for the whole ticket. It runs these steps in order, with no pause betw
 1. Create a worktree.
 2. Run the aikit `jira-start` skill inside it.
 3. Run `ticket-flow:ticket-verify` (Plan phase): test plan and "before" state.
-4. Write the code.
-5. Run `ticket-flow:ticket-verify` (Verify phase): gates, QA, review, fixes, final check, the
+4. Backend tickets only: show the user the design decisions and wait for approval.
+5. Write the code.
+6. Run `ticket-flow:ticket-verify` (Verify phase): gates, QA, review, fixes, final check, the
    evidence shown to the user, and the question about the commit and PR. Jira gets the evidence only
    after a yes.
 
 Invoke the skills with the Skill tool. Do not copy their steps into this skill.
 
 **Keep working.** The user asked for the whole ticket when they ran this skill. Do not stop to
-report progress, to show a plan, or to ask "should I continue". The one planned stop is the commit
-and PR question at the end of `ticket-verify`.
+report progress, to show a plan, or to ask "should I continue". The planned stops are the backend
+decision stop (step 5) and the commit and PR question at the end of `ticket-verify`.
 
 **Questions.** Ask one only when you are blocked and research cannot answer it: read the ticket and
 its linked pages, the code, the repo docs, past PRs on the same area, and the user's memory first.
@@ -85,7 +86,32 @@ Invoke the Skill tool with `skill: "ticket-flow:ticket-verify"` and `args: "<KEY
 changes yet, it runs its Plan phase: the QA agent writes `plan.md` from the ticket and records the
 "before" state.
 
-## 5. Write the code
+## 5. Backend decision stop
+
+Run this step only when the ticket changes a backend service: server code, database queries or
+schema, or AWS infrastructure (for example the `authentication` or `data-collection-api` repo).
+Skip it for a frontend-only ticket.
+
+The user is a frontend engineer who is learning backend. They must make the design decisions, not
+find them later in review comments. So before you write code, research the design (the code, the
+repo's patterns file in `ticket-verify`'s `references/review-patterns/`, past PRs on the same area),
+then show the user one short list and wait for their answer:
+
+1. **Queries.** Each query you add or change, and the number of database queries one request makes
+   before and after.
+2. **Shared code.** Each shared function, query, mapper or model you change, and who else calls it.
+   Say if any caller is on a hot path, such as login or token validation.
+3. **Reuse or copy.** Each existing check, helper or repository you reuse, and anything you copy
+   instead, with the reason.
+4. **Who can call it.** For a new or changed endpoint: who can reach it, and what stops other
+   callers.
+5. **Choices.** Each choice where a reviewer could ask for the other option, with your
+   recommendation and its trade-off.
+
+Write it in plain words, and explain each backend term the first time you use it. The user may
+change items or ask questions. Write the code only after they approve.
+
+## 6. Write the code
 
 Do the ticket in the worktree:
 
@@ -97,7 +123,7 @@ Do the ticket in the worktree:
 - Run the repo's fast checks on the changed files as you go.
 - Do not commit. `ticket-verify` checks the uncommitted change against the base.
 
-## 6. Verify
+## 7. Verify
 
 Invoke the Skill tool with `skill: "ticket-flow:ticket-verify"` and `args: "<KEY>"` again. With
 code changes, it runs its Verify phase and ends by asking the user whether to commit and open a

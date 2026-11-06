@@ -132,6 +132,20 @@ Seen: 3 comments, 2 PRs. https://github.com/observepoint/authentication/pull/248
 Raised by: robbimount
 In docs: no
 
+### 19. Keep a feature's columns out of shared, hot-path queries.
+Reviewers ask why new columns were added to a query or row mapper that login, `/validate` and other callers share, when only the new feature reads them. Every caller then pays for data it never uses, and `/validate` runs on almost every API request. They ask for a separate read on the new feature's path instead, even when that adds one query there. An extra query on a rarely used path costs less than extra columns on a hot path.
+Check: new columns in a `select` or in a shared mapper such as `toUserCredentials`; new fields on a shared model such as `UserCredentials` that only some queries fill, so the rest read a default (`null` or `false`) that looks like a real value.
+Seen: 4 comments, 1 PR. https://github.com/observepoint/authentication/pull/378#discussion_r4427609314, https://github.com/observepoint/authentication/pull/378#discussion_r4448922311, https://github.com/observepoint/authentication/pull/378#discussion_r4448922298
+Raised by: Vorelli, robbimount
+In docs: no
+
+### 20. Read a stored rule or flag in one place only.
+Reviewers flag a second copy of a validity check or a flag read, because the copies drift. A copied "is this token live" `WHERE` clause keeps accepting sessions after the original gets a new rule. A flag read as `!= 0` in one place and `== 1` (`isSet()`) in another gives two answers for an unexpected stored value. They ask to extract one shared condition or to read through the repository that already owns the data. This is pattern 2 applied to queries and stored values.
+Check: a new query that repeats the `WHERE` of an existing token or user check; a flag or enum column mapped in a new place when a repository already maps it; `!= 0` on a column that other code reads with `== 1`.
+Seen: 2 comments, 1 PR. https://github.com/observepoint/authentication/pull/378#discussion_r4448922326, https://github.com/observepoint/authentication/pull/378#discussion_r4448922332
+Raised by: robbimount
+In docs: no
+
 ## Lint rule candidates
 
 - New `.java` file under `src/main` (pattern 17).
