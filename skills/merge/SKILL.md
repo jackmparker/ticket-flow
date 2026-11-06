@@ -1,6 +1,6 @@
 ---
 name: merge
-description: Use to merge a ticket's PR into the default branch and finish its tickets - one ticket's PR, a combined PR that holds several tickets' PRs, or the top PR of a stack. It merges the PR, checks that every smaller PR is inside it, closes those PRs with a comment, deletes their branches and moves every ticket to Accepted. With "watch", it first waits until QA moves every ticket to Ready for Merge (Jira checked once a minute), then merges at once so others can deploy. prod-handoff starts the watch after a prod deploy. Examples - "merge 9442", "merge the OP Agent stack and clean it up", "watch for Tami to move 41048 to ready for merge, then merge it", "I just merged the top ticket in the stack for OP Agent", "the stack is merged, clean up the other branches". Takes a PR URL or number, a ticket key, or a feature name such as "OP Agent", plus extra ticket keys whose commits ride in the PR without a PR of their own.
+description: Use to merge a ticket's PR into the default branch and finish its tickets - one ticket's PR, a combined PR that holds several tickets' PRs, or the top PR of a stack. It merges the PR, checks that every smaller PR is inside it, closes those PRs with a comment, deletes their branches and local worktrees, and moves every ticket to Accepted. With "watch", it first waits until QA moves every ticket to Ready for Merge (Jira checked once a minute), then merges at once so others can deploy. prod-handoff starts the watch after a prod deploy. Examples - "merge 9442", "merge the OP Agent stack and clean it up", "watch for Tami to move 41048 to ready for merge, then merge it", "I just merged the top ticket in the stack for OP Agent", "the stack is merged, clean up the other branches". Takes a PR URL or number, a ticket key, or a feature name such as "OP Agent", plus extra ticket keys whose commits ride in the PR without a PR of their own.
 ---
 
 # Merge a PR and finish its tickets
@@ -140,7 +140,7 @@ PR has commits that never reached master.
 
 ## 5. Close the smaller PRs and delete the branches
 
-Skip this step for a single PR. For a stack, work from the top down. Then no PR is left targeting
+For a single PR, do only "Local worktrees" at the end of this step. For a stack, work from the top down. Then no PR is left targeting
 a branch that is gone.
 
 ```bash
@@ -163,6 +163,31 @@ the branch is already gone. That is not an error. Confirm none are left:
 ```bash
 git ls-remote --heads origin | grep -E "<branch1>|<branch2>|..."
 ```
+
+**Local worktrees.** Remove the local worktree of the main PR's branch and of each smaller PR's
+branch (also for a single PR). Run it from the repo's main checkout, not from inside a worktree
+you remove:
+
+```bash
+aikit repo worktrees list
+```
+
+For each entry whose `branch` is one of these branches:
+
+1. Check for work that is not on GitHub: `git -C <path> status --porcelain` must be empty, and
+   `git -C <path> log --oneline @{u}..` must print nothing (or the branch has no upstream because
+   it is merged and deleted, and `git -C <path> log --oneline origin/<default>..HEAD` shows only
+   commits that are inside the merged PR, which the safety gate in step 4 checked).
+2. If both are clean, remove it. This also deletes the local branch:
+
+   ```bash
+   aikit repo worktrees remove <name> --yes
+   ```
+
+3. If not, leave it and name it in the report with what is left in it. Never discard changes.
+
+A worktree outside `.aikit/worktrees/` (for example under `.claude/worktrees/`) needs
+`--dir <that folder>`. Leave worktrees of branches that are not part of this merge.
 
 ## 6. Move the tickets
 
@@ -195,7 +220,7 @@ Lead with the result.
 Merged #9442 into master (squash 5a8cf69). Check: it holds the head commit of each ticket's PR.
 
 1. Closed with a comment that points to #9442: #9426, #9428, #9431, #9434, #9435, #9439
-2. Deleted the 6 branches. GitHub had already deleted the #9442 branch.
+2. Deleted the 6 branches. GitHub had already deleted the #9442 branch. Removed 7 local worktrees.
 3. Jira: WORK-41048, WORK-41060, WORK-41064, WORK-41065, WORK-41067, WORK-41070 moved from Ready for Merge to Accepted.
 
 Not touched: #9001 (proof of concept, still open). Close it too?
