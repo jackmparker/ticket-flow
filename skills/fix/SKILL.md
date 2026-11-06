@@ -238,10 +238,11 @@ report the files. The fix is already pushed on the ticket's PR, so its reply can
 ## 7. Redeploy
 
 Only when step 5 says so. Invoke the Skill tool with `skill: "ticket-flow:deploy-staging"` and
-`args: "<branch that runs on the environment> <env>"`. It merges master in, deploys, sets the
-Environment field and moves the ticket from `Waiting for Fix` (or `Ready for Staging`) to
-`On Stage - Ready for Test`. Tickets of a combined PR in other columns (for example `In Test`)
-stay where QA has them.
+`args: "<branch that runs on the environment> <env> fixed <KEY1> <KEY2> ..."`. Name only the
+tickets whose QA bug this run fixed (and pushed). It merges master in, deploys, sets the
+Environment field and moves those tickets from `Waiting for Fix` to `On Stage - Ready for Test`.
+Other tickets of a combined PR stay where QA has them, including another ticket in
+`Waiting for Fix` whose bug is not fixed yet.
 
 For a ticket that was on prod, deploy-staging cannot move it back. Leave its status and tell the
 user.

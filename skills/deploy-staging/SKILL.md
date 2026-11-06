@@ -1,6 +1,6 @@
 ---
 name: deploy-staging
-description: Use when asked to deploy a moonbeam ticket to staging. It deploys to US2 (the user's own FE staging environment) unless the user names another environment such as US8. Examples - "deploy 41083 to staging", "send 9442 to us2", "deploy WORK-41083 to us8". It merges master into the branch and pushes (ticket-flow:catch-up), deploys at once with the aikit deploy skill without waiting for the DefaultPR checks, and when the deploy lands sets each ticket's Environment field and moves every ticket in Ready for Staging or Waiting for Fix to On Stage - Ready for Test. Meanwhile it watches DefaultPR; if it fails, it fixes the cause, pushes after the deploy ends, and deploys to the environment again. Works for one ticket's PR, a combined PR that holds several tickets, and a stack of PRs. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional environment. With no ticket, use the branch or PR of the current session. moonbeam only.
+description: Use when asked to deploy a moonbeam ticket to staging. It deploys to US2 (the user's own FE staging environment) unless the user names another environment such as US8. Examples - "deploy 41083 to staging", "send 9442 to us2", "deploy WORK-41083 to us8". It merges master into the branch and pushes (ticket-flow:catch-up), deploys at once with the aikit deploy skill without waiting for the DefaultPR checks, and when the deploy lands sets each ticket's Environment field and moves every ticket in Ready for Staging to On Stage - Ready for Test, plus the tickets in Waiting for Fix that the caller names as fixed ("fixed WORK-41070"). Meanwhile it watches DefaultPR; if it fails, it fixes the cause, pushes after the deploy ends, and deploys to the environment again. Works for one ticket's PR, a combined PR that holds several tickets, and a stack of PRs. Takes a ticket number, ticket key, PR URL or number, or branch name, and an optional environment. With no ticket, use the branch or PR of the current session. moonbeam only.
 ---
 
 # Deploy a moonbeam ticket to staging
@@ -142,14 +142,18 @@ aikit jira issues set-field <KEY1> <KEY2> ... --field environment --value "<ENV>
 On `set-field-value-not-allowed`, the error lists the valid options. Retry once with the option
 that matches the environment (case-insensitive). When none matches, leave the field and report it.
 
-Move every ticket that is in `Ready for Staging` with the "Deploy to Staging" transition, and
-every ticket in `Waiting for Fix` (a redeploy after a QA fix) with its "Ready for Staging"
-transition. Both lead to `On Stage - Ready for Test`. Use the IDs:
+Move every ticket that is in `Ready for Staging` with the "Deploy to Staging" transition. Move a
+ticket in `Waiting for Fix` only when the request names it as fixed (for example the `fix` skill
+passes "fixed WORK-41070"), with its "Ready for Staging" transition. Both lead to
+`On Stage - Ready for Test`. Use the IDs:
 
 ```bash
 aikit jira issues transitions apply <KEYS in Ready for Staging> --transition-id 91
-aikit jira issues transitions apply <KEYS in Waiting for Fix> --transition-id 371
+aikit jira issues transitions apply <KEYS named as fixed> --transition-id 371
 ```
+
+A ticket in `Waiting for Fix` that the request does not name stays there, even when it is in the
+deployed branch: QA sent it back, and its fix may not be in this deploy. Name it in the report.
 
 If 91 or 371 fails, run `aikit jira issues transitions list <KEY>` and pick the transition whose
 `targetStatus` is `On Stage - Ready for Test`. A ticket that is already in an On Stage column
