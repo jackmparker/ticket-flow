@@ -195,11 +195,12 @@ evidence folder and the round number. It runs every case and writes `runs/round-
   image and name what moved. Save the diff images in `<evidence>/compare/`. They do not go to
   Jira unless a failure needs one.
 
-**Browser not answering.** When browser-harness calls time out or fail for 3 minutes in total,
-the QA agent stops waiting. It writes the cases done so far to `runs/round-<n>.md`, marks the
-others "not run: browser not answering", and returns. You check the agent Chrome
-(`curl -s -m 5 http://127.0.0.1:9333/json/version`). If it does not answer, stop and tell the user
-that the agent Chrome hangs. Do not restart it yourself: other agents use it too.
+**Browser not answering.** When browser-harness calls time out or fail, the QA agent waits: a
+watchdog restarts the agent Chrome within about 4 minutes. Then it calls `claim_tab()` again (a
+new window), loads its page again and runs the interrupted case again. If calls still fail after
+5 minutes, it writes the cases done so far to `runs/round-<n>.md`, marks the others "not run:
+browser not answering", and returns. You then stop and tell the user. Do not restart the agent
+Chrome yourself: other agents use it too.
 
 UI: the QA agent uses browser-harness with its own client id, so it never shares your window:
 `BU_CLIENT=<session id>-qa browser-harness -c '...'`. It starts each call with `claim_tab()`,

@@ -1,6 +1,6 @@
 {
   "name": "ticket-flow",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "description": "Take a Jira ticket from start to Accepted: write and verify the code, review teammates' PRs, fix review comments and QA bugs, deploy moonbeam to staging and prod, and merge single, combined and stacked PRs. Moves the Jira tickets at each step and learns from every review comment and QA bug. Uses gh and the aikit CLI.",
   "author": {
     "name": "Jack Parker",
