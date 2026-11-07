@@ -38,7 +38,7 @@ A combined PR (several tickets' branches merged into one PR) and a stack of PRs 
 | Skill | What it does | Say something like |
 |---|---|---|
 | `start` | Does a ticket end to end: creates a worktree, runs the aikit `jira-start` skill, has `ticket-verify` write the test plan, writes the code, runs `ticket-verify` again, shows you the report and screenshots, and asks about the commit and PR. It renames the T3 Code thread to the ticket key and summary. For a backend ticket it stops once before the code to show you the design decisions. | "Start 40393" |
-| `ticket-verify` | Run twice per ticket. First, a QA agent writes an adversarial test plan (with the repo's "missed by QA" cases) and records the "before" state. Then it runs the fast checks, has QA try to break the change in the browser or against the API, reviews the code against the repo's review patterns, fixes the findings, and shows you a short PDF report. Jira gets the PDF in one comment, only after your yes. | "Verify this ticket" |
+| `ticket-verify` | Run twice per ticket. First, a QA agent writes an adversarial test plan (with the repo's "missed by QA" cases) and records the "before" state. Then it runs the fast checks, proves each new test fails without the change, has QA try to break the change in the browser or against the API (new console errors fail, an accessibility scan and a screenshot compare of every screen that uses what changed), reviews the code against every review pattern, fixes every finding, small ones included, runs a production build, and shows you a short PDF report. Jira gets the PDF in one comment, only after your yes. Every check is explained in [docs/ticket-verify.md](docs/ticket-verify.md). | "Verify this ticket" |
 
 ### Review and fix
 
