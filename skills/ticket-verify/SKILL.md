@@ -191,6 +191,39 @@ Only after QA passes.
   file, checks the diff against every pattern of every kind, and reports every finding with file
   and line.
 
+**Second reviewer: Gemini** (Full and Light, when available). A different AI model misses
+different things. In T3 Code, call `mcp__t3-code__orchestrator_capabilities` (load it with
+ToolSearch). When the `antigravity` provider has `canRunChildTask: true` and a Gemini model (for
+example `gemini-3.8-flash`), start it at the same time as the review above, with
+`mcp__t3-code__delegate_task`: `target: {providerInstanceId: "antigravity", model: "<gemini model>",
+options: {thinking_level: "high"}}`, `role: "review"`, `mode: "async"`, title
+"Gemini review <KEY>". Its task, with absolute paths:
+
+```
+You are a code reviewer. Read only: do not change files, commit or post anything.
+The change: git -C <worktree> diff origin/<base>   (uncommitted edits count)
+Read the files around it in <worktree>. Also read: <evidence>/ticket.md, <evidence>/plan.md,
+<patterns file>, <QA misses file>.
+Report every finding: bugs, edge cases, accessibility, missing or weak tests, unclear names,
+anything a careful reviewer would comment on. For each: file and line, what is wrong, the fix,
+in two sentences at most. End with how many files you read.
+```
+
+Gemini is a second opinion, not a judge: check each of its findings against the code before you
+act. A real one is fixed like any other finding. One that is wrong goes in `review.md` as
+`not changed` with why it is wrong. Mark each Gemini finding "(Gemini)".
+
+**Gemini is optional. It never blocks the ticket.** Skip it, go on with the rest of the review,
+and write one line in the report ("Gemini review: skipped, <reason>") when:
+
+- T3 Code's tools are missing (not in T3 Code), or the `antigravity` provider is off, signed out,
+  has `canRunChildTask: false`, or lists no Gemini model.
+- `delegate_task` returns an error, or the child fails, is cancelled, or reports a rate limit, a
+  quota or a sign-in problem. Do not retry more than once.
+- It has not finished when the rest of the review is done and fixed. Wait at most 15 minutes
+  after that, then cancel it (`mcp__t3-code__task_cancel`) and skip it.
+- It returns no file and line for its findings, or read no files. Treat that as no review.
+
 Write `review.md`: each finding, then `fixed`, `not changed` with the reason, or `asked user`. Fix
 the confirmed findings. A finding that changes behavior or a screen sends you back to 3.2 for the
 cases it touches.

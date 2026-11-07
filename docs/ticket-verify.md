@@ -31,7 +31,7 @@ the code is right tends to agree with it.
 | [New console errors](#new-console-errors) | The change adds no browser errors or failed requests | An error or failed request that the base does not have |
 | [Accessibility scan](#accessibility-scan) | The change adds no accessibility problem | A rule fails that did not fail on the base, or fails on more elements |
 | [Screen compare](#screen-compare) | Screens the ticket did not mean to change still look the same | A changed pixel the ticket did not ask for |
-| [Code review](#code-review) | The code is what this repo's reviewers want | Any finding (all are fixed) |
+| [Code review](#code-review) | The code is what this repo's reviewers want, checked by Claude and by Gemini | Any finding (all are fixed) |
 | [Final check](#final-check) | The code that will be committed works and builds for production | A gate, the production build or a final QA case fails |
 
 ## Test plan
@@ -133,6 +133,15 @@ Only after QA passes.
 - **Light level:** one fresh reviewer that checks the diff against every pattern of every kind and
   the "missed by QA" list.
 
+- **Second reviewer, Gemini:** when the Antigravity provider is on in T3 Code, a Gemini model
+  (Gemini 3.8 Flash) reviews the same diff at the same time, read only, with the same ticket, plan,
+  patterns and QA misses. A different model misses different things. The coding agent checks each
+  Gemini finding against the code first: real ones are fixed, wrong ones are listed as not changed
+  with the reason. Gemini never blocks a ticket. The review goes on without it, and the report says why, when
+  the provider is off or signed out, T3 Code is not in use, the call fails or hits a rate limit or
+  quota (one retry at most), it gives no usable findings, or it is still running 15 minutes after
+  the rest of the review is done.
+
 Every finding is fixed. `review.md` lists each one as `fixed`, `not changed` (only with a reason
 you would accept, never "minor") or `asked user`. A fix that changes behavior or a screen sends the
 touched cases back to QA.
@@ -207,6 +216,8 @@ data are removed first.
 ## Requirements
 
 - The aikit CLI (Jira) and the aikit `code-review` skill.
+- For the Gemini reviewer: T3 Code with the Antigravity provider on and signed in (the company's
+  Gemini Enterprise plan covers it).
 - For UI QA in moonbeam: [agent-dev-setup](https://github.com/jackmparker/agent-dev-setup), which
   gives each agent its own dev server (`moonbeam-dev`) and its own window in the headless agent
   Chrome.
@@ -214,6 +225,4 @@ data are removed first.
 
 ## Not yet
 
-- **A second reviewer from another AI model.** Planned with Google's Gemini CLI, when it is
-  confirmed that the company's Gemini plan covers it. It would run only when `gemini` is installed.
 - **Mobile widths.** Cases cover desktop width only, unless the ticket is about a narrow screen.
