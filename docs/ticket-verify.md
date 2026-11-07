@@ -37,7 +37,10 @@ the code is right tends to agree with it.
 ## Test plan
 
 The QA agent writes `plan.md`: one table row per case (id, area, steps, expected result, why it
-matters). Acceptance criteria come first. Then it tries to break the change:
+matters). The plan fits the size of the change: about 10 cases for a small fix, one case per
+risk. A case that depends on time (retries, timeouts) makes the failure happen at once instead of
+waiting; one that still needs more than a minute of waiting goes to the specs. Acceptance criteria
+come first. Then it tries to break the change:
 
 - Empty, very long, special-character and boundary inputs; zero, one and many items.
 - Read-only users, other permission levels, a shared-link visitor.

@@ -88,6 +88,16 @@ Start one subagent (`general-purpose`). Brief it with the ticket file, the kind 
 evidence folder, and ask for `plan.md` and the "before" state. The plan:
 
 - One table row per case: id, area, steps, expected result, why it matters.
+- Fit the size to the change. A small fix (one behavior, a few files) gets about 10 cases. A large
+  feature can get more. One case per risk: merge cases that share their steps, and do not repeat
+  a case for each screen or value when one shows the risk. The categories below are a list to
+  choose from, not a checklist to fill.
+- No long real-time waits. When a case depends on time (retries, timeouts, polling), make the
+  failure happen at once (intercept the request with CDP `Fetch` and answer with the error) and
+  shorten the delay where the code allows it. Keep interception inside one browser-harness call,
+  with `Fetch.disable` in a `finally` block: interception left on pauses the page's requests for
+  good, and on 2026-11-06 that made the agent Chrome grow to 12 GB and hang. A case that still needs more than 1 minute of real
+  waiting goes to the specs instead (fake timers), and the plan says so.
 - Acceptance criteria first, one or more cases each.
 - Then try to break it. Pick the categories that fit the change:
   - Empty, very long, special-character and boundary inputs; zero, one and many items.
@@ -184,6 +194,12 @@ evidence folder and the round number. It runs every case and writes `runs/round-
   part of a screen, that the ticket does not mean to change is a failed case: look at the diff
   image and name what moved. Save the diff images in `<evidence>/compare/`. They do not go to
   Jira unless a failure needs one.
+
+**Browser not answering.** When browser-harness calls time out or fail for 3 minutes in total,
+the QA agent stops waiting. It writes the cases done so far to `runs/round-<n>.md`, marks the
+others "not run: browser not answering", and returns. You check the agent Chrome
+(`curl -s -m 5 http://127.0.0.1:9333/json/version`). If it does not answer, stop and tell the user
+that the agent Chrome hangs. Do not restart it yourself: other agents use it too.
 
 UI: the QA agent uses browser-harness with its own client id, so it never shares your window:
 `BU_CLIENT=<session id>-qa browser-harness -c '...'`. It starts each call with `claim_tab()`,
