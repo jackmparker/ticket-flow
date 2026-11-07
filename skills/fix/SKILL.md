@@ -288,15 +288,15 @@ already covers what the reviewer asked, the review missed it, so add one line un
 - <YYYY-MM-DD> <reviewer login>: <what they asked for, one sentence>. <comment URL>
 ```
 
-**QA bug.** Open `skills/ticket-verify/references/qa-misses/<repo>.md` (create it with a
-`# <repo>: bugs QA found after ticket-verify passed` heading). Our QA run missed this bug, so add
-one line:
+**QA bug.** Open `skills/ticket-verify/references/qa-misses/<repo>.md`. If it is missing, create
+it from `qa-misses/moonbeam.md`: copy the heading (with the new repo name), the grouping check and
+the two empty sections. Our QA run missed this bug, so add one line under `## Not yet grouped`:
 
 ```
 - <YYYY-MM-DD> <KEY> (<QA name>): <what broke, one sentence>. Test: <the case that finds it, one sentence>.
 ```
 
-Skip questions and praise. Commit on `main` with the message
+Then run the grouping check at the top of the QA misses file. Skip questions and praise. Commit on `main` with the message
 `Review patterns and QA misses: new feedback from <repo> <KEY or #pr>` and push. Do not update
 the installed plugin for this. If the pull or push fails, leave the lines uncommitted and say so.
 

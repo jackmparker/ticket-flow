@@ -53,7 +53,8 @@ skill (`<this skill folder>/../ticket-verify/references/`):
    `Kind:` line. Use **breaks** and **theme** patterns as checks. Use **quality** patterns only
    under *The quality tier*. Ignore **style** patterns: they are for the user's own code.
 2. `qa-misses/<repo>.md`, when it exists: bugs QA found after the code passed review. Check
-   whether this diff can cause the same kind of bug. A hit is a **breaks** finding.
+   whether this diff can cause the same kind of bug. A hit is a **breaks** finding. Run the
+   grouping check at the top of the file each time you read it.
 
 And `<this skill folder>/references/my-bar.md`: comments the user cut or changed in past reviews.
 Do not draft a comment like one the user cut.

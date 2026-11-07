@@ -65,7 +65,8 @@ report.json          the facts for the report (format in build-report.py)
    and go on with the file you have. Do not wait for it. Also apply the entries under
    `## New, not yet grouped` in the file: they are recent misses that no pattern holds yet.
    QA misses file: `references/qa-misses/<repo>.md` in this skill folder, when it exists. It lists
-   bugs that QA found after this skill passed a ticket (the `fix` skill adds them).
+   bugs that QA found after this skill passed a ticket (the `fix` skill adds them). Run the
+   grouping check at the top of the file each time you read it.
 5. Kind of change:
    - **UI**: the repo serves screens (moonbeam, op-component-library). QA runs in the browser.
    - **Backend**: everything else. QA runs against the API, the CLI or the tests.
