@@ -43,7 +43,11 @@ matters). Acceptance criteria come first. Then it tries to break the change:
 - Read-only users, other permission levels, a shared-link visitor.
 - Double clicks, fast repeat actions, back and forward, reload in the middle of a flow.
 - Slow or failed requests, and what the screen shows then.
-- Light and dark theme when colors or styles change. Desktop width only.
+- Light and dark theme when colors or styles change.
+- Narrow screens (390 px and 768 px wide), when the screen already works at a narrow width, when
+  people reach it on phones, or when the ticket is about a narrow screen. A screen built for
+  desktop only is skipped. In moonbeam, most screens are desktop only, so most moonbeam tickets
+  skip this. The plan states the decision and the reason for each screen.
 - Screens next to the change that use the same component, service or endpoint.
 - Backend: invalid and missing fields, wrong types, unknown ids, duplicate requests, permission
   checks, large payloads, and the effect on existing data and callers.
@@ -222,7 +226,3 @@ data are removed first.
   gives each agent its own dev server (`moonbeam-dev`) and its own window in the headless agent
   Chrome.
 - Python 3 with Pillow (for `screen-diff.py`), and Google Chrome (for the PDF).
-
-## Not yet
-
-- **Mobile widths.** Cases cover desktop width only, unless the ticket is about a narrow screen.

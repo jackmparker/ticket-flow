@@ -94,11 +94,24 @@ evidence folder, and ask for `plan.md` and the "before" state. The plan:
   - Read-only users and other permission levels; a shared-link visitor.
   - Double clicks, fast repeat actions, back and forward, reload in the middle of a flow.
   - Slow or failed requests, and what the screen shows then.
-  - Light and dark theme, when colors or styles change. Desktop width only.
+  - Light and dark theme, when colors or styles change.
+  - Narrow screens, when the rule below says so.
   - Screens next to the change that use the same component, service or endpoint.
   - Backend: invalid and missing fields, wrong types, unknown ids, duplicate requests, permission
     checks, large payloads, and the effect on existing data and callers.
-- No mobile cases unless the ticket is about a narrow screen.
+- Narrow screens (phone 390 px, tablet 768 px wide). No fixed rule: decide for each screen the
+  change touches, and write the decision and its reason in the plan in one line.
+  - Test them when the screen already works at a narrow width on the base: its styles have
+    breakpoints (media queries, responsive grid classes), or it is usable at 390 px. The change
+    must not break that. Also test them when people reach the screen on phones (a public site, a
+    shared link, a sign-in page), or when the ticket is about a narrow screen.
+  - Skip them when the screen was built for desktop only and the base is already broken at a
+    narrow width. Most moonbeam screens are like that (moonbeam is mobile-friendly on a few
+    screens only), so most moonbeam tickets skip them. Fixing a desktop-only screen is not this
+    ticket's work.
+  - When unsure, take one base screenshot at 390 px and decide from it.
+  - Set the width with the CDP command `Emulation.setDeviceMetricsOverride` (`mobile: true` for
+    the phone width), and clear it with `Emulation.clearDeviceMetricsOverride` when done.
 - Give the QA agent the QA misses file (step 1) when it exists. For each entry that fits the
   change, add its test as a case. These are bugs that past QA runs missed.
 
@@ -161,7 +174,8 @@ evidence folder and the round number. It runs every case and writes `runs/round-
 - **Screen compare** (UI). Find every screen that uses what the change touches: the changed
   components (search the templates for their selectors), shared styles and services. Up to 10
   screens, most used first. On each, take a full-page screenshot on the base and on the branch,
-  with the same window size, account, data and scroll, in light and dark theme, and run
+  with the same window size, account, data and scroll, in light and dark theme (and at the narrow
+  widths, on screens where the plan tests them), and run
   `<this skill folder>/screen-diff.py <before> <after> <diff>`. A changed pixel on a screen, or a
   part of a screen, that the ticket does not mean to change is a failed case: look at the diff
   image and name what moved. Save the diff images in `<evidence>/compare/`. They do not go to
