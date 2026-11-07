@@ -142,6 +142,11 @@ evidence folder, and ask for `plan.md` and the "before" state. The plan:
 
 **Test data.** Use the account and data rules in the user's memory: an existing test account
 first, else create the data, and delete what you create at the end. Never use production data.
+Never change existing data in a way that starts real work: audit or journey runs, scans,
+schedules, exports, emails or alerts. Unpausing a paused audit, for example, can start a run at
+once (on 2026-11-06 this started three runs, one with 2,000 pages). When a test needs such an
+action, use data you created for the test, or intercept the request and answer it yourself. If
+real work starts anyway, stop it if you can, and tell the user in the report.
 
 ## 3. Verify phase
 
@@ -155,13 +160,14 @@ lint on the changed files, and the specs for the changed folders. In moonbeam:
 **Test proof.** A test that passes with and without the change proves nothing. For the specs the
 change adds or changes:
 
-1. Save the changed source files (not the specs) to `<evidence>/proof/backup/`, and save
-   `git diff` to `<evidence>/proof/diff-before.patch`.
-2. Write the base version of each changed source file in its place
-   (`git show origin/<base>:<path> > <path>`). A new source file: delete it.
-3. Run those specs. Each new or changed spec file must have at least one failing case.
-4. Put the saved files back from the backup, and check that `git diff` is the same as
-   `diff-before.patch`. Stop and report if it is not.
+1. Swap in the base versions of the changed source files (not the specs):
+   `<this skill folder>/test-proof.sh swap <evidence> origin/<base> <file> <file> ...`. It saves
+   the files and `git diff`, writes each base version in place, and deletes new source files.
+   Give each file as its own argument. Do not build a file list in a shell variable: zsh does not
+   split it, and nothing gets swapped.
+2. Run those specs. Each new or changed spec file must have at least one failing case.
+3. Put the files back: `<this skill folder>/test-proof.sh restore <evidence>`. It checks that
+   `git diff` is the same as before the swap. Stop and report if it is not.
 
 A spec that still passes does not test the change: make it test the change, then run the proof
 again. A spec for a pure refactor (no behavior change) may pass; say so. Record the result as a

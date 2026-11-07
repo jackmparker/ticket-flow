@@ -63,6 +63,11 @@ change on other screens. They come from `https://master.observepointstaging.com`
 `master` is the branch's base, otherwise from the base run locally. A backend change records the current request and
 response for each case instead.
 
+**Test data.** QA uses an existing test account first, else creates its own data, and deletes
+what it created at the end. It never changes existing data in a way that starts real work (audit
+or journey runs, scans, schedules, exports, emails, alerts). On 2026-11-06, unpausing paused test
+audits started three real runs. For such actions it uses its own data, or intercepts the request.
+
 ## Gates
 
 The repo's fast checks, before QA spends time on a broken build. In moonbeam:
@@ -78,10 +83,14 @@ npx eslint <changed files>
 A test that passes with and without the change proves nothing. For the specs the change adds or
 changes:
 
-1. Save the changed source files (not the specs) and the current `git diff`.
-2. Put the base version of each changed source file in its place, and delete new source files.
-3. Run those specs. Each new or changed spec file must have at least one failing case.
-4. Put the saved files back, and check that `git diff` is exactly what it was.
+1. `test-proof.sh swap` saves the changed source files (not the specs) and the current
+   `git diff`, puts the base version of each one in its place, and deletes new source files.
+2. Run those specs. Each new or changed spec file must have at least one failing case.
+3. `test-proof.sh restore` puts the saved files back and checks that `git diff` is exactly what
+   it was.
+
+The script takes each file as its own argument. A file list in a shell variable broke this step
+twice on 2026-11-06: zsh did not split the list, so nothing was swapped.
 
 A spec that still passes gets fixed so it tests the change. A spec for a pure refactor may pass;
 the report says so. The result is a case in the plan, area "Test proof".
@@ -220,6 +229,7 @@ data are removed first.
 | `build-report.py` | Builds the PDF, the logs file and the Jira comment from `report.json`, and embeds the uploaded files in the comment |
 | `a11y_scan.py` | Runs axe-core on the current page inside browser-harness. Downloads axe-core 4.10.2 once to `~/.cache/ticket-verify/` |
 | `screen-diff.py` | Compares two screenshots and writes a diff image |
+| `test-proof.sh` | Swaps in the base versions of changed source files for the test proof, and puts them back |
 
 ## Requirements
 
