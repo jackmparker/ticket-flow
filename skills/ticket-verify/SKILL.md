@@ -80,7 +80,7 @@ report.json          the facts for the report (format in build-report.py)
 | Review | `code-review` skill, all areas | One reviewer subagent that checks every pattern of every kind and the QA misses list |
 | Test proof, new console errors, production build | Yes | Yes |
 | Screen compare, accessibility scan | Yes, for UI changes | Only for the screens the change touches |
-| Screenshots | Visual changes only, at most 3, cropped | One, cropped |
+| Screenshots | One pair per visual change, cropped (see step 2) | Usually one, cropped |
 
 ## 2. Plan phase: the QA agent writes the plan
 
@@ -116,9 +116,13 @@ evidence folder, and ask for `plan.md` and the "before" state. The plan:
   change, add its test as a case. These are bugs that past QA runs missed.
 
 **"Before" state.**
-- UI: screenshots only of what the ticket will change visually, before the change: at most 3,
-  each cropped to the area that changes (`Page.captureScreenshot` with a `clip` around the element),
-  not the whole screen. A behavior change with no visual difference gets no screenshot; its test
+- UI: screenshots only of what the ticket will change visually, before the change, each cropped
+  to the area that changes (`Page.captureScreenshot` with a `clip` around the element), not the
+  whole screen. No fixed number: take as many as it takes to show every visual change once, and
+  no more. One pair per distinct change. When the same change shows on several screens, show
+  the clearest one and name the others in its caption. A screen that looks the same gets no
+  screenshot. The report must stay short enough to read: a 60-page PDF from too many full-page
+  screenshots is why this rule exists. A behavior change with no visual difference gets no screenshot; its test
   case is the proof. Use
   `https://master.observepointstaging.com` when its `master` is the branch's base. Otherwise run
   the base in its own worktree with `moonbeam-dev start`. Same window size, account, data and

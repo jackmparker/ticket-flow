@@ -11,7 +11,7 @@ cards, so the ticket gets ONE comment that holds the summary and the PDF.
 Reads <dir>/report.json (format below) and the screenshots in <dir>/before/ and <dir>/after/.
 Writes:
   <dir>/report.html                    self-contained page (images embedded)
-  <dir>/<KEY>-verify-<date>.pdf         the report attached to Jira (short: 1 to 3 pages)
+  <dir>/<KEY>-verify-<date>.pdf         the report attached to Jira (short)
   <dir>/<KEY>-verify-<date>-logs.txt    only when there is long text (logs, full API bodies); attached too
   <dir>/comment.json                   the short Jira comment, as ADF (Jira's comment format)
 
@@ -32,8 +32,8 @@ report.json:
   "api_pairs": [{"name": "...", "request": "GET /x", "before": "404 Not found", "after": "200, 3 items", "detail": "full bodies (optional)"}],
   "logs": "console errors and failed requests still seen, with why they are not from this change"
 }
-Leave a list empty when it has nothing. "pairs" is for screens that LOOK different, at most 3, each
-cropped to the changed area. "api_pairs" is for backend changes: one short line each for before and
+Leave a list empty when it has nothing. "pairs" is for screens that LOOK different: one pair per
+distinct visual change (no fixed number), each cropped to the changed area. "api_pairs" is for backend changes: one short line each for before and
 after; full bodies go in "detail". Long "logs" and every "detail" go to the separate text file.
 Secrets must be removed before this runs: the PDF goes to Jira as is.
 """
@@ -48,7 +48,7 @@ import tempfile
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 COMMENT_MAX_ITEMS = 6
-MAX_PAIRS = 3
+WARN_PAIRS = 8
 SHORT_LOG_CHARS, SHORT_LOG_LINES = 400, 6  # longer logs go to the separate text file
 
 CSS = """
@@ -230,8 +230,9 @@ def main():
         sys.exit(__doc__)
     d = os.path.abspath(sys.argv[1])
     r = json.load(open(os.path.join(d, "report.json")))
-    if len(r.get("pairs", [])) > MAX_PAIRS:
-        sys.exit(f"build-report: {len(r['pairs'])} screenshot pairs; keep the {MAX_PAIRS} that show the change best")
+    if len(r.get("pairs", [])) > WARN_PAIRS:
+        print(f"build-report: warning: {len(r['pairs'])} screenshot pairs. Check that each one shows a "
+              "different change and is cropped; drop repeats.", file=sys.stderr)
     stem = f"{r['key']}-verify-{r.get('date', 'undated')}"
     extra = long_text(r)
     logs_name = f"{stem}-logs.txt" if extra else None

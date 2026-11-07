@@ -54,9 +54,10 @@ matters). Acceptance criteria come first. Then it tries to break the change:
 - Every entry in the repo's "missed by QA" list that fits the change (see
   [Where the lessons come from](#where-the-lessons-come-from)).
 
-**Before state.** Screenshots of only what the ticket changes visually (at most 3, cropped to the
-changed area), from `https://master.observepointstaging.com` when its `master` is the branch's
-base, otherwise from the base run locally. A backend change records the current request and
+**Before state.** Screenshots of only what the ticket changes visually, cropped to the changed
+area. There is no fixed number: one pair per distinct visual change, and no repeats of the same
+change on other screens. They come from `https://master.observepointstaging.com` when its
+`master` is the branch's base, otherwise from the base run locally. A backend change records the current request and
 response for each case instead.
 
 ## Gates
@@ -171,7 +172,7 @@ config value, a rename) and no change to an API, a database, permissions or a sh
 | Review | `code-review` skill, all areas | One reviewer, every pattern and the QA misses list |
 | Test proof, new console errors, production build | Yes | Yes |
 | Screen compare, accessibility scan | Yes, for UI changes | Only the screens the change touches |
-| Screenshots in the report | Visual changes only, at most 3, cropped | One, cropped |
+| Screenshots in the report | One pair per visual change, cropped | Usually one, cropped |
 
 ## Evidence folder
 
@@ -198,8 +199,8 @@ Then it asks one question: commit, post to Jira and open the PR?
 On a yes, the ticket gets **one comment from you** (posted with your aikit Jira login) with a short
 summary and the PDF in it. The PDF (`build-report.py`) holds the result, what was found and fixed,
 what is still open, review findings not changed with the reason, the full test plan as one table
-(final result per case, with its result in each round), and at most 3 cropped before and after
-pairs. Long text (logs, full API bodies) goes to a separate `-logs.txt` file. Secrets and customer
+(final result per case, with its result in each round), and one cropped before and after pair
+per visual change. Long text (logs, full API bodies) goes to a separate `-logs.txt` file. Secrets and customer
 data are removed first.
 
 ## Where the lessons come from
